@@ -269,8 +269,49 @@ Configuración:
 
 `default: false`
 
-La intención es mantener discretos los comandos internos para jugadores
-sin permiso.
+La prioridad es mantener discretos los comandos internos para jugadores
+sin autorización.
+
+### Protección declarativa
+
+Los comandos administrativos conservan en `plugin.yml`:
+
+-   `permission: theosfera.admin`;
+-   un `permission-message` que simula un comando desconocido.
+
+Esta protección permite que Bukkit/Paper:
+
+-   bloquee la ejecución antes del executor;
+-   oculte los comandos a jugadores sin permiso;
+-   reduzca su exposición en sugerencias y sistemas de ayuda;
+-   evite revelar la existencia de administración interna.
+
+### Protección en Java
+
+`TheosferaCommand` y `KeybindCommand` también verifican
+`theosfera.admin`.
+
+`TheosferaTabCompleter` y `KeybindTabCompleter` devuelven listas vacías
+cuando el usuario no tiene autorización.
+
+Las comprobaciones Java se conservan como defensa adicional y para
+proteger el comportamiento si cambia el registro declarativo.
+
+### Decisión definitiva
+
+No eliminar `permission` ni `permission-message` de `/theosfera` o
+`/keybind` mientras la prioridad sea ocultar los comandos
+administrativos.
+
+La localización del mensaje bloqueado por Bukkit es secundaria frente a
+la seguridad y discreción.
+
+Política confirmada:
+
+1.  seguridad;
+2.  discreción;
+3.  funcionalidad;
+4.  estética y localización.
 
 El acceso administrativo fue probado en servidor mediante LuckPerms.
 
@@ -1032,6 +1073,11 @@ Pruebas funcionales confirmadas:
 -   El futuro trabajo de Skyblock irá a `TheosferaSkyblockAddons` sobre
     SuperiorSkyblock2.
 -   La fundación GitHub ya está fusionada y no debe repetirse.
+-   `/theosfera` y `/keybind` conservan permisos declarativos en
+    `plugin.yml`.
+-   Las comprobaciones Java permanecen como defensa adicional.
+-   La seguridad y discreción tienen prioridad sobre la localización del
+    mensaje de permiso.
 
 ## 23. Incidencia local conocida: Windows y OneDrive
 
@@ -1221,30 +1267,49 @@ Estado confirmado:
 -   funcionamiento seguro sin PlaceholderAPI;
 -   consola sin errores relacionados.
 
+### Política de permisos revisada
+
+La discreción de los comandos administrativos fue auditada.
+
+Resultado:
+
+-   no se requiere una corrección funcional;
+-   `permission` debe permanecer en `plugin.yml`;
+-   `permission-message` debe permanecer como mensaje discreto;
+-   las verificaciones Java deben conservarse;
+-   los tab completers deben continuar filtrados por permiso.
+
+La rama propuesta `fix/command-permission-discretion` fue descartada sin
+cambios porque eliminar la protección declarativa podría exponer las
+etiquetas de los comandos.
+
 ### Siguiente punto recomendado
 
-Revisar la discreción de los comandos administrativos en `plugin.yml`.
+Definir el roadmap modular del nuevo alcance general de TheosferaCore
+antes de implementar sistemas adicionales.
 
-Actualmente `/theosfera` y `/keybind` contienen:
+Áreas propuestas para planificación:
 
--   `permission`;
--   `permission-message`.
+-   comandos esenciales;
+-   keybinds y puente futuro con Theosfera Client;
+-   waypoints y proveedores externos como Lunar Client;
+-   perfil global del jugador;
+-   escuadrones;
+-   party y amigos;
+-   historial de servidores o partidas recientes;
+-   nivel y puntos generales;
+-   misiones y logros;
+-   API para plugins específicos de modalidades.
 
-La decisión previa confirmada fue delegar la comprobación de permisos a
-las clases Java para enviar el mensaje discreto sin permitir que Bukkit
-intercepte el comando antes del executor.
+Principio arquitectónico:
 
-Antes de modificar código o configuración, revisar:
+TheosferaCore contiene identidad y servicios globales. Los plugins de
+cada modalidad contienen mecánicas, misiones, logros, monedas y
+comportamientos específicos.
 
--   `plugin.yml`;
--   `TheosferaCommand`;
--   `KeybindCommand`;
--   `TheosferaTabCompleter`;
--   `KeybindTabCompleter`;
--   comportamiento actual sin `theosfera.admin`.
+Nombre de rama sugerido para documentar el roadmap:
 
-Nombre de rama sugerido:
+`docs/core-modular-roadmap`
 
-`fix/command-permission-discretion`
-
-No mezclar esta corrección con la ampliación visual de PlaceholderAPI.
+No comenzar una implementación grande hasta definir límites, módulos,
+dependencias y orden de desarrollo.
