@@ -97,11 +97,9 @@ public final class KeybindActionMenuActionHandler implements MenuActionHandler {
                 "%action%", actionNumber
         );
 
-        context.messageService().sendLine(
+        context.messageService().sendLineKey(
                 player,
-                "&bEscribe el nuevo tipo: &fPLAYER_COMMAND&7, "
-                        + "&fCONSOLE_COMMAND &7o &fMESSAGE&b. "
-                        + "Escribe &ccancelar&b para salir."
+                "menu.action-edit-type-prompt"
         );
 
         context.inputService().requestInput(player, input -> {
@@ -214,11 +212,9 @@ public final class KeybindActionMenuActionHandler implements MenuActionHandler {
 
         player.closeInventory();
 
-        context.messageService().sendLine(
+        context.messageService().sendLineKey(
                 player,
-                "&bEscribe el tipo de acción: &fPLAYER_COMMAND&7, "
-                        + "&fCONSOLE_COMMAND &7o &fMESSAGE&b. "
-                        + "Escribe &ccancelar&b para salir."
+                "menu.action-add-type-prompt"
         );
 
         context.inputService().requestInput(player, input -> {
