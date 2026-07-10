@@ -105,3 +105,11 @@ messages:
 
   menu:
     not-found: "&cThis menu could not be found."
+    edit-name-prompt: "&bEnter the new keybind name or type &ccancel&b."
+    edit-description-prompt: "&bEnter the new description or type &ccancel&b."
+    edit-key-prompt: "&bEnter the new key or type &ccancel&b. &7Example: A, 1, F1-F12"
+    action-editing: "&bEditing action &f#%action%&b."
+    action-edit-type-prompt: "&bEnter the new type: &fPLAYER_COMMAND&7, &fCONSOLE_COMMAND&7, or &fMESSAGE&b. Type &ccancel&b to exit."
+    action-edit-value-prompt: "&bEnter the new action value or type &ccancel&b."
+    action-add-type-prompt: "&bEnter the action type: &fPLAYER_COMMAND&7, &fCONSOLE_COMMAND&7, or &fMESSAGE&b. Type &ccancel&b to exit."
+    action-add-value-prompt: "&bEnter the action value or type &ccancel&b."

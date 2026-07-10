@@ -57,9 +57,9 @@ public final class KeybindEditMenuActionHandler implements MenuActionHandler {
 
         player.closeInventory();
 
-        context.messageService().sendLine(
+        context.messageService().sendLineKey(
                 player,
-                "&bEscribe el nuevo nombre de la keybind o &ccancelar&b."
+                "menu.edit-name-prompt"
         );
 
         context.inputService().requestInput(player, input -> {
@@ -98,9 +98,9 @@ public final class KeybindEditMenuActionHandler implements MenuActionHandler {
 
         player.closeInventory();
 
-        context.messageService().sendLine(
+        context.messageService().sendLineKey(
                 player,
-                "&bEscribe la nueva descripción o &ccancelar&b."
+                "menu.edit-description-prompt"
         );
 
         context.inputService().requestInput(player, input -> {
@@ -138,9 +138,9 @@ public final class KeybindEditMenuActionHandler implements MenuActionHandler {
 
         player.closeInventory();
 
-        context.messageService().sendLine(
+        context.messageService().sendLineKey(
                 player,
-                "&bEscribe la nueva tecla o &ccancelar&b. &7Ejemplo: A, 1, F1-F12"
+                "menu.edit-key-prompt"
         );
 
         context.inputService().requestInput(player, input -> {
@@ -183,7 +183,14 @@ public final class KeybindEditMenuActionHandler implements MenuActionHandler {
     }
 
     private boolean isCancelled(final String input) {
-        return input != null && input.trim().equalsIgnoreCase("cancelar");
+        if (input == null) {
+            return false;
+        }
+
+        final String normalizedInput = input.trim();
+
+        return normalizedInput.equalsIgnoreCase("cancelar")
+                || normalizedInput.equalsIgnoreCase("cancel");
     }
 
     private OptionalIntWrapper getKeybindId(final MenuActionContext context) {

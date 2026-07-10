@@ -105,3 +105,11 @@ messages:
 
   menu:
     not-found: "&cNo se pudo encontrar este menú."
+    edit-name-prompt: "&bEscribe el nuevo nombre de la keybind o &ccancelar&b."
+    edit-description-prompt: "&bEscribe la nueva descripción o &ccancelar&b."
+    edit-key-prompt: "&bEscribe la nueva tecla o &ccancelar&b. &7Ejemplo: A, 1, F1-F12"
+    action-editing: "&bEditando la acción &f#%action%&b."
+    action-edit-type-prompt: "&bEscribe el nuevo tipo: &fPLAYER_COMMAND&7, &fCONSOLE_COMMAND &7o &fMESSAGE&b. Escribe &ccancelar&b para salir."
+    action-edit-value-prompt: "&bEscribe el nuevo valor de la acción o &ccancelar&b."
+    action-add-type-prompt: "&bEscribe el tipo de acción: &fPLAYER_COMMAND&7, &fCONSOLE_COMMAND &7o &fMESSAGE&b. Escribe &ccancelar&b para salir."
+    action-add-value-prompt: "&bEscribe el valor de la acción o &ccancelar&b."

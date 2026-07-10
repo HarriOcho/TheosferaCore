@@ -91,9 +91,10 @@ public final class KeybindActionMenuActionHandler implements MenuActionHandler {
 
         player.closeInventory();
 
-        context.messageService().sendLine(
+        context.messageService().sendLineKey(
                 player,
-                "&bEditando la acción &f#" + actionNumber + "&b."
+                "menu.action-editing",
+                "%action%", actionNumber
         );
 
         context.messageService().sendLine(
@@ -145,9 +146,9 @@ public final class KeybindActionMenuActionHandler implements MenuActionHandler {
         final Player player = context.player();
         final int actionNumber = actionIndex + 1;
 
-        context.messageService().sendLine(
+        context.messageService().sendLineKey(
                 player,
-                "&bEscribe el nuevo valor de la acción o &ccancelar&b."
+                "menu.action-edit-value-prompt"
         );
 
         context.inputService().requestInput(player, input -> {
@@ -255,9 +256,9 @@ public final class KeybindActionMenuActionHandler implements MenuActionHandler {
     ) {
         final Player player = context.player();
 
-        context.messageService().sendLine(
+        context.messageService().sendLineKey(
                 player,
-                "&bEscribe el valor de la acción o &ccancelar&b."
+                "menu.action-add-value-prompt"
         );
 
         context.inputService().requestInput(player, input -> {
@@ -330,7 +331,13 @@ public final class KeybindActionMenuActionHandler implements MenuActionHandler {
     }
 
     private boolean isCancelled(final String input) {
-        return input != null
-                && input.trim().equalsIgnoreCase("cancelar");
+        if (input == null) {
+            return false;
+        }
+
+        final String normalizedInput = input.trim();
+
+        return normalizedInput.equalsIgnoreCase("cancelar")
+                || normalizedInput.equalsIgnoreCase("cancel");
     }
 }
