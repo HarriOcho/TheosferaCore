@@ -338,13 +338,16 @@ Tipos confirmados en `KeybindActionType`:
 
 La lógica real de gestión permanece en `KeybindManager`.
 
-## 9. Variables
+## 9. Variables y PlaceholderAPI
 
-`VariableService` está implementado.
+`VariableService` está implementado y continúa como punto central de
+resolución.
 
 `/theosfera variables` funciona.
 
-Variables confirmadas:
+### Variables propias
+
+Variables de jugador confirmadas:
 
 -   `%player%`
 -   `%player_name%`
@@ -354,8 +357,64 @@ Variables confirmadas:
 -   `%player_y%`
 -   `%player_z%`
 
+Variables de keybind confirmadas:
+
+-   `%keybind%`
+-   `%key%`
+
 `VariableService` se propaga al contexto de acciones de menú mediante
 `MenuActionContext`.
+
+### Integración externa
+
+PlaceholderAPI está integrado como dependencia opcional.
+
+Configuración confirmada:
+
+-   dependencia `compileOnly`;
+-   repositorio HelpChat en Gradle;
+-   `softdepend` en `plugin.yml`;
+-   versión integrada: `2.12.3`.
+
+Arquitectura incorporada:
+
+-   `ExternalPlaceholderService`;
+-   `NoOpExternalPlaceholderService`;
+-   `PlaceholderApiExternalPlaceholderService`.
+
+Flujo de resolución:
+
+1.  resolver variables propias del jugador;
+2.  resolver variables propias de la keybind cuando exista ese contexto;
+3.  resolver placeholders externos mediante PlaceholderAPI;
+4.  devolver el texto final.
+
+La integración externa se ejecuta una sola vez por texto.
+
+Si PlaceholderAPI no está disponible, se usa
+`NoOpExternalPlaceholderService` y los placeholders externos permanecen
+sin modificar.
+
+Si PlaceholderAPI falla durante la resolución:
+
+-   se conserva el texto original;
+-   el fallo se registra una sola vez;
+-   se evita spam en consola;
+-   la acción de TheosferaCore continúa.
+
+La resolución externa funciona actualmente en:
+
+-   acciones `PLAYER_COMMAND`;
+-   acciones `CONSOLE_COMMAND`;
+-   acciones `MESSAGE`;
+-   mensajes configurables de acciones de menú;
+-   comandos configurables de acciones de menú;
+-   action bars y títulos de acciones de menú.
+
+Los placeholders externos todavía no se aplican a nombres y lore
+visuales de inventarios. Ese flujo requiere contexto de jugador dentro
+del renderizado y permanece fuera del alcance de esta primera
+integración.
 
 ## 10. Idiomas y mensajes
 
@@ -895,6 +954,7 @@ Salidas registradas:
 -   `BUILD SUCCESSFUL in 2s`
 -   `BUILD SUCCESSFUL in 250ms`
 -   `BUILD SUCCESSFUL in 6s`
+-   `BUILD SUCCESSFUL in 24s`
 
 No había tests automatizados en esos builds:
 
@@ -940,6 +1000,23 @@ Pruebas funcionales confirmadas:
     aprobadas;
 -   no se registraron errores, stack traces ni warnings de paths
     faltantes.
+-   TheosferaCore inicia correctamente sin PlaceholderAPI;
+-   la ausencia de PlaceholderAPI no produce `NoClassDefFoundError`;
+-   sin PlaceholderAPI, las variables propias funcionan y los
+    placeholders externos permanecen intactos;
+-   con PlaceholderAPI, la integración se detecta durante `onEnable`;
+-   una expansión ausente conserva el placeholder sin romper acciones;
+-   la expansión Server resuelve `%server_online%`;
+-   placeholders internos y externos funcionan juntos;
+-   `PLAYER_COMMAND` resuelve placeholders externos;
+-   `CONSOLE_COMMAND` resuelve placeholders externos;
+-   `MESSAGE` resuelve placeholders internos y externos;
+-   las acciones `MESSAGE` interpretan colores legacy y HEX mediante
+    `MessageService`;
+-   `/theosfera reload` conserva la resolución;
+-   un reinicio completo conserva acciones y placeholders;
+-   las pruebas con y sin PlaceholderAPI terminaron sin errores, stack
+    traces ni alertas inesperadas.
 
 ## 22. Decisiones cerradas y elementos eliminados
 
@@ -1077,7 +1154,9 @@ extremo:
 -   clicks fuera del inventario superior;
 -   drag sobre el inventario superior.
 
-## 27. Localización de prompts completada
+## 27. Integraciones completadas
+
+### Localización de prompts
 
 Los textos visibles del flujo de chat fueron migrados desde literales
 hardcodeados hacia el sistema multilenguaje.
@@ -1104,52 +1183,68 @@ Resultado confirmado:
 
 ### PlaceholderAPI
 
-PlaceholderAPI permanece pendiente del roadmap.
+La primera fase de PlaceholderAPI está implementada y probada.
 
-Debe diseñarse como integración opcional para evitar que su ausencia
-afecte los módulos no relacionados de TheosferaCore.
+Resultado confirmado:
 
-No se considera implementado.
+-   integración opcional;
+-   fallback no-op;
+-   variables propias preservadas;
+-   placeholders externos resueltos después de las variables propias;
+-   protección ante fallos de resolución;
+-   registro único del primer fallo;
+-   texto original preservado cuando ocurre un error;
+-   colores corregidos en acciones `MESSAGE`;
+-   pruebas aprobadas con dependencia ausente y presente;
+-   expansión Server validada.
+
+Pendiente opcional posterior:
+
+-   evaluar PlaceholderAPI en nombres y lore visuales de inventarios.
 
 ## 28. Punto exacto de reanudación
 
-La administración gráfica de keybinds y sus prompts multilenguaje están
-funcionales y fueron probados de extremo a extremo.
+La administración gráfica de keybinds, los prompts multilenguaje y la
+primera integración de PlaceholderAPI están implementados y probados.
 
 Estado confirmado:
 
--   listado y paginación;
--   detalles y navegación;
--   edición de nombre, descripción y tecla;
--   listado, adición, edición y eliminación de acciones;
+-   gestión gráfica completa de keybinds;
+-   gestión gráfica de acciones;
 -   prompts en español e inglés;
 -   cancelación mediante `cancelar` y `cancel`;
 -   persistencia tras reload y reinicio;
--   merge automático de nuevos paths de idioma;
+-   integración opcional con PlaceholderAPI;
+-   placeholders internos y externos combinados;
+-   acciones de mensaje, jugador y consola probadas;
+-   colores de mensajes corregidos;
+-   funcionamiento seguro sin PlaceholderAPI;
 -   consola sin errores relacionados.
 
-El siguiente punto recomendado es inspeccionar el uso actual de
-placeholders y diseñar la integración opcional con PlaceholderAPI antes
-de modificar código.
+### Siguiente punto recomendado
 
-La integración debe:
+Revisar la discreción de los comandos administrativos en `plugin.yml`.
 
-1.  ser opcional;
-2.  detectar si PlaceholderAPI está disponible;
-3.  no romper TheosferaCore cuando esté ausente;
-4.  preservar `VariableService`;
-5.  evitar expansión repetida o innecesaria;
-6.  registrar una alerta clara si una característica dependiente queda
-    desactivada.
+Actualmente `/theosfera` y `/keybind` contienen:
 
-Nombre de rama sugerido para la fase de implementación:
+-   `permission`;
+-   `permission-message`.
 
-`feature/placeholderapi-hook`
+La decisión previa confirmada fue delegar la comprobación de permisos a
+las clases Java para enviar el mensaje discreto sin permitir que Bukkit
+intercepte el comando antes del executor.
 
-No implementar la integración sin revisar primero:
+Antes de modificar código o configuración, revisar:
 
--   `VariableService`;
 -   `plugin.yml`;
--   `TheosferaCore`;
--   los puntos actuales donde se resuelven variables;
--   las reglas de módulos y dependencias opcionales de `AGENTS.md`.
+-   `TheosferaCommand`;
+-   `KeybindCommand`;
+-   `TheosferaTabCompleter`;
+-   `KeybindTabCompleter`;
+-   comportamiento actual sin `theosfera.admin`.
+
+Nombre de rama sugerido:
+
+`fix/command-permission-discretion`
+
+No mezclar esta corrección con la ampliación visual de PlaceholderAPI.
