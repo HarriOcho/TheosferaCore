@@ -125,7 +125,8 @@ public final class TheosferaCore extends JavaPlugin {
     private void registerKeyCommand() {
         KeybindActionExecutor keybindActionExecutor = new KeybindActionExecutor(
                 this,
-                variableService
+                variableService,
+                messageService
         );
 
         PluginCommand keyCommand = getCommand("key");
