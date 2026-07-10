@@ -393,6 +393,34 @@ multilenguaje.
 
 `MessageService` soporta placeholders y formato legacy/HEX.
 
+### Prompts de menús
+
+Los prompts visibles de entrada por chat en:
+
+-   `KeybindEditMenuActionHandler`;
+-   `KeybindActionMenuActionHandler`;
+
+usan `MessageService.sendLineKey` y se resuelven desde:
+
+-   `lang/es.yml`;
+-   `lang/en.yml`.
+
+Se localizaron los flujos de:
+
+-   edición de nombre;
+-   edición de descripción;
+-   edición de tecla;
+-   adición de acciones;
+-   edición de acciones.
+
+La cancelación acepta:
+
+-   `cancelar`;
+-   `cancel`.
+
+Los nuevos paths se incorporan automáticamente a archivos de idioma
+existentes sin eliminar personalizaciones.
+
 ### Centrado visual
 
 `MessageCenteringService` proporciona centrado visual real.
@@ -662,7 +690,7 @@ Flujo:
 2.  verifica la existencia de la keybind;
 3.  cierra el inventario;
 4.  solicita el nuevo valor por chat;
-5.  permite `cancelar`;
+5.  permite `cancelar` y `cancel`;
 6.  valida el dato;
 7.  llama a `KeybindManager`;
 8.  envía el mensaje correspondiente;
@@ -692,6 +720,9 @@ Si la tecla está duplicada, muestra el error y no aplica el cambio.
 
 Probado y funcional por chat.
 
+Los prompts de nombre, descripción y tecla usan claves localizadas y
+fueron probados en español e inglés.
+
 ### `KeybindActionMenuActionHandler`
 
 Tipo registrado:
@@ -719,7 +750,7 @@ La edición:
 1.  solicita el nuevo tipo;
 2.  valida `PLAYER_COMMAND`, `CONSOLE_COMMAND` o `MESSAGE`;
 3.  solicita el nuevo valor;
-4.  permite `cancelar`;
+4.  permite `cancelar` y `cancel`;
 5.  rechaza valores vacíos;
 6.  llama a `KeybindManager.editAction`;
 7.  reabre `keybind-actions` conservando la página.
@@ -740,14 +771,15 @@ Tipos aceptados:
 -   `CONSOLE_COMMAND`
 -   `MESSAGE`
 
-Permite `cancelar`.
+Permite `cancelar` y `cancel`.
 
 Valida tipo y valor vacío.
 
 Finalmente llama a `KeybindManager.addAction` y reabre el menú de
 acciones.
 
-La adición quedó implementada y el build posterior fue exitoso.
+Los prompts de adición y edición de acciones usan claves localizadas y
+fueron probados en español e inglés.
 
 ## 18. Entrada por chat
 
@@ -862,6 +894,7 @@ Salidas registradas:
 -   `BUILD SUCCESSFUL in 958ms`
 -   `BUILD SUCCESSFUL in 2s`
 -   `BUILD SUCCESSFUL in 250ms`
+-   `BUILD SUCCESSFUL in 6s`
 
 No había tests automatizados en esos builds:
 
@@ -890,6 +923,23 @@ Pruebas funcionales confirmadas:
 -   warnings/protecciones de materiales, acciones, sonidos y partículas
     incorporados;
 -   builds posteriores a `KeybindActionMenuActionHandler` exitosos.
+-   prompts de edición de nombre, descripción y tecla probados en
+    español e inglés;
+-   prompts de adición y edición de acciones probados en español e
+    inglés;
+-   `cancelar` funciona en los flujos localizados;
+-   `cancel` funciona en los flujos localizados;
+-   tipos de acción inválidos muestran el error localizado;
+-   no se muestran claves internas de idioma al jugador;
+-   `/theosfera reload` conserva traducciones y datos;
+-   un reinicio completo conserva las modificaciones;
+-   los nuevos paths se añadieron automáticamente a los archivos de
+    idioma existentes;
+-   las personalizaciones existentes se conservaron;
+-   la batería de localización terminó con 47 de 47 verificaciones
+    aprobadas;
+-   no se registraron errores, stack traces ni warnings de paths
+    faltantes.
 
 ## 22. Decisiones cerradas y elementos eliminados
 
@@ -1027,45 +1077,79 @@ extremo:
 -   clicks fuera del inventario superior;
 -   drag sobre el inventario superior.
 
-## 27. Pendientes posteriores
+## 27. Localización de prompts completada
 
-### Textos hardcodeados del flujo de chat
+Los textos visibles del flujo de chat fueron migrados desde literales
+hardcodeados hacia el sistema multilenguaje.
 
-Revisar los prompts visibles enviados mediante `sendLine` en:
+Archivos Java actualizados:
 
 -   `KeybindEditMenuActionHandler`;
 -   `KeybindActionMenuActionHandler`.
 
-Determinar cuáles deben migrarse a `lang/es.yml` y `lang/en.yml` para
-mantener la política multilenguaje.
+Recursos actualizados:
+
+-   `lang/es.yml`;
+-   `lang/en.yml`.
+
+Resultado confirmado:
+
+-   no quedan llamadas `sendLine` con prompts hardcodeados en estos
+    handlers;
+-   se usan ocho claves mediante `sendLineKey`;
+-   español e inglés contienen los mismos paths;
+-   `cancelar` y `cancel` son aceptados;
+-   el build fue exitoso;
+-   las pruebas en servidor fueron aprobadas.
 
 ### PlaceholderAPI
 
 PlaceholderAPI permanece pendiente del roadmap.
 
+Debe diseñarse como integración opcional para evitar que su ausencia
+afecte los módulos no relacionados de TheosferaCore.
+
 No se considera implementado.
 
 ## 28. Punto exacto de reanudación
 
-La administración gráfica de keybinds está funcional de extremo a
-extremo:
+La administración gráfica de keybinds y sus prompts multilenguaje están
+funcionales y fueron probados de extremo a extremo.
+
+Estado confirmado:
 
 -   listado y paginación;
 -   detalles y navegación;
 -   edición de nombre, descripción y tecla;
--   listado de acciones;
--   adición de acciones;
--   eliminación con click derecho;
--   edición con click izquierdo.
+-   listado, adición, edición y eliminación de acciones;
+-   prompts en español e inglés;
+-   cancelación mediante `cancelar` y `cancel`;
+-   persistencia tras reload y reinicio;
+-   merge automático de nuevos paths de idioma;
+-   consola sin errores relacionados.
 
-El siguiente trabajo recomendado es migrar los prompts visibles
-hardcodeados de `KeybindEditMenuActionHandler` y
-`KeybindActionMenuActionHandler` a `lang/es.yml` y `lang/en.yml`,
-preservando el comportamiento actual.
+El siguiente punto recomendado es inspeccionar el uso actual de
+placeholders y diseñar la integración opcional con PlaceholderAPI antes
+de modificar código.
 
-Nombre de rama sugerido:
+La integración debe:
 
-`refactor/localize-menu-chat-prompts`
+1.  ser opcional;
+2.  detectar si PlaceholderAPI está disponible;
+3.  no romper TheosferaCore cuando esté ausente;
+4.  preservar `VariableService`;
+5.  evitar expansión repetida o innecesaria;
+6.  registrar una alerta clara si una característica dependiente queda
+    desactivada.
 
-Antes de comenzar, cerrar el flujo de la rama actual mediante Pull
-Request y actualizar `main`.
+Nombre de rama sugerido para la fase de implementación:
+
+`feature/placeholderapi-hook`
+
+No implementar la integración sin revisar primero:
+
+-   `VariableService`;
+-   `plugin.yml`;
+-   `TheosferaCore`;
+-   los puntos actuales donde se resuelven variables;
+-   las reglas de módulos y dependencias opcionales de `AGENTS.md`.
