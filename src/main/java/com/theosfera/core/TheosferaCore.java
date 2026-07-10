@@ -17,6 +17,9 @@ import com.theosfera.core.ui.MessageService;
 import com.theosfera.core.variable.VariableService;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
+import com.theosfera.core.variable.placeholder.ExternalPlaceholderService;
+import com.theosfera.core.variable.placeholder.NoOpExternalPlaceholderService;
+import com.theosfera.core.variable.placeholder.PlaceholderApiExternalPlaceholderService;
 
 public final class TheosferaCore extends JavaPlugin {
 
@@ -32,7 +35,9 @@ public final class TheosferaCore extends JavaPlugin {
         messageService = new MessageService(this);
         menuManager = new MenuManager(this);
         menuManager.reload();
-        variableService = new VariableService();
+        variableService = new VariableService(
+                createExternalPlaceholderService()
+        );
         menuChatInputService = new MenuChatInputService();
 
         KeybindStorage keybindStorage = new KeybindStorage(this);
@@ -133,6 +138,49 @@ public final class TheosferaCore extends JavaPlugin {
         keyCommand.setExecutor(
                 new KeyCommand(keybindManager, keybindActionExecutor)
         );
+    }
+
+    private ExternalPlaceholderService createExternalPlaceholderService() {
+        if (!getServer().getPluginManager()
+                .isPluginEnabled("PlaceholderAPI")) {
+
+            getLogger().info(
+                    "PlaceholderAPI no está disponible. "
+                            + "Los placeholders externos permanecerán sin resolver."
+            );
+
+            return new NoOpExternalPlaceholderService();
+        }
+
+        try {
+            final ExternalPlaceholderService service =
+                    new PlaceholderApiExternalPlaceholderService();
+
+            getLogger().info(
+                    "Integración con PlaceholderAPI habilitada correctamente."
+            );
+
+            return service;
+        } catch (final RuntimeException | LinkageError exception) {
+            getLogger().severe(
+                    "============================================================"
+            );
+            getLogger().severe("                     THEOSFERA ALERT");
+            getLogger().severe(
+                    "============================================================"
+            );
+            getLogger().severe("Dependencia: PlaceholderAPI");
+            getLogger().severe("Estado: INICIALIZACIÓN FALLIDA");
+            getLogger().severe("Módulo afectado: External Placeholders");
+            getLogger().severe(
+                    "Acción: Los placeholders externos fueron desactivados."
+            );
+            getLogger().severe(
+                    "============================================================"
+            );
+
+            return new NoOpExternalPlaceholderService();
+        }
     }
 
     @Override
