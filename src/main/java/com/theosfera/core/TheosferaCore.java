@@ -15,11 +15,12 @@ import com.theosfera.core.menu.input.MenuChatInputListener;
 import com.theosfera.core.menu.input.MenuChatInputService;
 import com.theosfera.core.ui.MessageService;
 import com.theosfera.core.variable.VariableService;
-import org.bukkit.command.PluginCommand;
-import org.bukkit.plugin.java.JavaPlugin;
 import com.theosfera.core.variable.placeholder.ExternalPlaceholderService;
 import com.theosfera.core.variable.placeholder.NoOpExternalPlaceholderService;
 import com.theosfera.core.variable.placeholder.PlaceholderApiExternalPlaceholderService;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.plugin.java.JavaPlugin;
+import java.util.logging.Level;
 
 public final class TheosferaCore extends JavaPlugin {
 
@@ -154,7 +155,7 @@ public final class TheosferaCore extends JavaPlugin {
 
         try {
             final ExternalPlaceholderService service =
-                    new PlaceholderApiExternalPlaceholderService();
+                    new PlaceholderApiExternalPlaceholderService(getLogger());
 
             getLogger().info(
                     "Integración con PlaceholderAPI habilitada correctamente."
@@ -162,6 +163,12 @@ public final class TheosferaCore extends JavaPlugin {
 
             return service;
         } catch (final RuntimeException | LinkageError exception) {
+            getLogger().log(
+                    Level.SEVERE,
+                    "No se pudo inicializar la integración con PlaceholderAPI.",
+                    exception
+            );
+
             getLogger().severe(
                     "============================================================"
             );
