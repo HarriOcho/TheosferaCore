@@ -705,21 +705,27 @@ Valores manejados:
 
 #### `manage`
 
-Estado actual confirmado:
+Estado confirmado:
 
 -   click derecho: elimina la acción;
--   click izquierdo: aún no ejecuta una edición real.
+-   click izquierdo: edita la acción mediante entrada por chat.
 
 Obtiene `ACTION_INDEX` desde PDC y `keybindId` desde `MenuHolder`.
 
 La eliminación llama a `KeybindManager.removeAction`.
 
-Después:
+La edición:
 
--   envía mensaje de éxito;
--   reabre `keybind-actions` conservando la página.
+1.  solicita el nuevo tipo;
+2.  valida `PLAYER_COMMAND`, `CONSOLE_COMMAND` o `MESSAGE`;
+3.  solicita el nuevo valor;
+4.  permite `cancelar`;
+5.  rechaza valores vacíos;
+6.  llama a `KeybindManager.editAction`;
+7.  reabre `keybind-actions` conservando la página.
 
-La eliminación con click derecho fue probada y funciona.
+La eliminación con click derecho y la edición con click izquierdo fueron
+probadas en servidor y funcionan.
 
 #### `add`
 
@@ -878,6 +884,8 @@ Pruebas funcionales confirmadas:
 -   cambios se reflejan al reabrir;
 -   menú dinámico de acciones abre y muestra acciones;
 -   click derecho elimina una acción;
+-   click izquierdo edita el tipo y valor de una acción;
+-   cancelación y validaciones de la edición de acciones funcionan;
 -   mensajes centrados implementados y probados;
 -   warnings/protecciones de materiales, acciones, sonidos y partículas
     incorporados;
@@ -965,39 +973,27 @@ limpio.
 Este repositorio es la base para futuros plugins. No trasladar lógica
 específica de TheosferaCore a la plantilla.
 
-## 25. Pendiente inmediato
+## 25. Edición de acciones completada
 
-### Prioridad 1 --- edición de acciones con click izquierdo
+La edición de acciones mediante click izquierdo desde
+`keybind-actions` quedó confirmada en el código real y fue probada en
+servidor.
 
-El punto exacto de reanudación es `KeybindActionMenuActionHandler`.
+Flujo validado:
 
-`manageAction(...)` actualmente elimina una acción cuando
-`context.clickType().isRightClick()`.
+1.  obtiene `ACTION_INDEX` desde PDC;
+2.  obtiene `keybindId` desde `MenuHolder`;
+3.  diferencia click izquierdo y derecho mediante `ClickType`;
+4.  reutiliza `MenuChatInputService`;
+5.  solicita y valida el nuevo tipo;
+6.  solicita y valida el nuevo valor;
+7.  llama a `KeybindManager.editAction`;
+8.  persiste el cambio;
+9.  muestra el resultado;
+10. reabre el menú conservando la página.
 
-El lore del menú anuncia:
-
--   click izquierdo para editar;
--   click derecho para eliminar.
-
-La edición real con click izquierdo aún no está implementada.
-
-Siguiente tarea concreta:
-
-1.  inspeccionar el estado real de `KeybindActionMenuActionHandler`;
-2.  revisar las firmas actuales de edición de acciones en
-    `KeybindManager`;
-3.  diseñar el flujo sin duplicar la lógica administrativa existente;
-4.  usar `ACTION_INDEX`;
-5.  usar `keybindId` desde `MenuHolder`;
-6.  reutilizar `MenuChatInputService`;
-7.  diferenciar click izquierdo y derecho mediante `ClickType`;
-8.  implementar edición;
-9.  ejecutar `git diff --check`;
-10. ejecutar el build;
-11. realizar pruebas funcionales.
-
-No asumir la firma exacta de `KeybindManager.editAction` sin revisar el
-código actual.
+También fueron confirmados la cancelación, los tipos inválidos y los
+valores vacíos.
 
 ## 26. Batería de pruebas pendiente
 
@@ -1023,7 +1019,6 @@ extremo:
 -   valor vacío;
 -   cancelación durante adición;
 -   eliminación con click derecho;
--   edición con click izquierdo;
 -   persistencia tras reload;
 -   persistencia tras reinicio;
 -   YAML mal formado;
@@ -1052,29 +1047,25 @@ No se considera implementado.
 
 ## 28. Punto exacto de reanudación
 
-Continuar desde `KeybindActionMenuActionHandler`.
+La administración gráfica de keybinds está funcional de extremo a
+extremo:
 
-La siguiente funcionalidad es:
+-   listado y paginación;
+-   detalles y navegación;
+-   edición de nombre, descripción y tecla;
+-   listado de acciones;
+-   adición de acciones;
+-   eliminación con click derecho;
+-   edición con click izquierdo.
 
-**editar una acción de keybind mediante click izquierdo desde
-`keybind-actions`, reutilizando la metadata dinámica y la lógica
-existente de `KeybindManager`.**
-
-Antes de modificar código:
-
-1.  actualizar y verificar `main`;
-2.  leer `AGENTS.md`;
-3.  leer este `PROJECT_STATE.md`;
-4.  inspeccionar `KeybindActionMenuActionHandler`;
-5.  inspeccionar `KeybindManager`;
-6.  revisar `keybind-actions.yml`;
-7.  crear una rama enfocada para la tarea.
+El siguiente trabajo recomendado es migrar los prompts visibles
+hardcodeados de `KeybindEditMenuActionHandler` y
+`KeybindActionMenuActionHandler` a `lang/es.yml` y `lang/en.yml`,
+preservando el comportamiento actual.
 
 Nombre de rama sugerido:
 
-`feature/keybind-action-edit`
+`refactor/localize-menu-chat-prompts`
 
-No volver al menú de edición de nombre/descripción/tecla como tarea
-pendiente: ese flujo ya está implementado y probado.
-
-No repetir la fundación GitHub: ya está fusionada en `main`.
+Antes de comenzar, cerrar el flujo de la rama actual mediante Pull
+Request y actualizar `main`.
