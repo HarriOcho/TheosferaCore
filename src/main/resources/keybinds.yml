@@ -1,0 +1,16 @@
+# ============================================================
+#                    THEOSFERA KEYBINDS
+# ============================================================
+#
+# Este archivo almacena los keybinds enviados a los jugadores
+# que utilizan Theosfera Keybinds.
+#
+# Cada keybind utiliza un ID numérico único.
+#
+# actions:
+#   Las acciones se ejecutan en el orden configurado.
+#
+# No edites los IDs mientras el servidor esté encendido.
+#
+
+keybinds: {}

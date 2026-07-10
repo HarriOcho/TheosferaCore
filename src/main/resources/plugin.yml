@@ -1,0 +1,41 @@
+name: TheosferaCore
+version: '${version}'
+main: com.theosfera.core.TheosferaCore
+api-version: '1.21'
+load: POSTWORLD
+author: HarriOcho
+description: Nucleo principal de Theosfera.
+
+softdepend:
+  - SuperiorSkyblock2
+  - FancyNpcs
+  - DecentHolograms
+  - PlaceholderAPI
+  - ItemsAdder
+  - ModelEngine
+  - Vault
+
+commands:
+  key:
+    description: Ejecuta una keybind por tecla
+    usage: /key <tecla>
+
+  keybind:
+    description: Administra las keybinds de TheosferaCore.
+    usage: /keybind
+    permission: theosfera.admin
+    permission-message: "§cComando desconocido, utiliza /help o /ayuda para obtener ayuda del servidor."
+
+  theosfera:
+    description: Comando principal de TheosferaCore.
+    usage: /theosfera
+    permission: theosfera.admin
+    permission-message: "§cComando desconocido, utiliza /help o /ayuda para obtener ayuda del servidor."
+    aliases:
+      - tcore
+      - tc
+
+permissions:
+  theosfera.admin:
+    description: Permite administrar TheosferaCore.
+    default: false

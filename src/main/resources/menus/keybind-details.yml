@@ -1,0 +1,59 @@
+id: keybind-details
+title: "&b&lTheosfera &8| &fKeybind"
+size: 27
+
+items:
+  border:
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - "0-8"
+      - 18
+      - 19
+      - 20
+      - 22
+      - 25
+      - 26
+      - 9
+      - 17
+
+  edit:
+    slot: 24
+    material: ANVIL
+    name: "&bEditar keybind"
+    lore:
+      - "&7Abre el menú de edición."
+      - ""
+      - "&eClick para editar."
+    actions:
+      - "[open_menu] keybind-edit"
+
+  keybind-info:
+    material: PAPER
+    name: "&b%keybind_name%"
+    slot: 13
+    lore:
+      - "&7ID: &f%keybind_id%"
+      - "&7Tecla: &f%keybind_key%"
+      - "&7Acciones: &f%keybind_actions%"
+      - ""
+      - "&7Descripción:"
+      - "&f%keybind_description%"
+
+  back:
+    material: ARROW
+    name: "&bVolver"
+    slot: 21
+    lore:
+      - "&7Regresa al listado de keybinds."
+    actions:
+      - "[back]"
+
+  close:
+    material: BARRIER
+    name: "&cCerrar"
+    slot: 23
+    lore:
+      - "&7Cierra este menú."
+    actions:
+      - "[close]"

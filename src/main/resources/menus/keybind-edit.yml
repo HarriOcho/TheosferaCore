@@ -1,0 +1,73 @@
+title: "&8Editar keybind"
+size: 27
+
+items:
+  edit-name:
+    slot: 10
+    material: NAME_TAG
+    name: "&bEditar nombre"
+    lore:
+      - "&7Cambia el nombre interno de esta keybind."
+      - ""
+      - "&eClick para editar."
+    actions:
+      - "[keybind_edit] name"
+
+  edit-description:
+    slot: 12
+    material: WRITABLE_BOOK
+    name: "&bEditar descripción"
+    lore:
+      - "&7Cambia la descripción visible."
+      - ""
+      - "&eClick para editar."
+    actions:
+      - "[keybind_edit] description"
+
+  keybind-info:
+    slot: 13
+    material: PAPER
+    name: "&b%keybind_name%"
+    lore:
+      - "&8Información actual"
+      - ""
+      - "&7ID: &f%keybind_id%"
+      - "&7Nombre: &f%keybind_name%"
+      - "&7Descripción:"
+      - "&f%keybind_description%"
+      - ""
+      - "&7Tecla: &f%keybind_key%"
+      - "&7Acciones: &f%keybind_actions_count%"
+    actions:
+      - "[message] &7Esta es la información actual de la keybind."
+
+  edit-key:
+    slot: 14
+    material: TRIPWIRE_HOOK
+    name: "&bEditar tecla"
+    lore:
+      - "&7Cambia la tecla asignada."
+      - ""
+      - "&eClick para editar."
+    actions:
+      - "[keybind_edit] key"
+
+  edit-actions:
+    slot: 16
+    material: COMMAND_BLOCK
+    name: "&bEditar acciones"
+    lore:
+      - "&7Administra las acciones de esta keybind."
+      - ""
+      - "&eClick para editar."
+    actions:
+      - "[open_menu] keybind-actions"
+
+  back:
+    slot: 22
+    material: ARROW
+    name: "&cVolver"
+    lore:
+      - "&7Regresa a los detalles."
+    actions:
+      - "[open_menu] keybind-details"

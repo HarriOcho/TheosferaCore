@@ -1,0 +1,51 @@
+title: "&8Acciones de keybind"
+size: 54
+
+items:
+  keybind-info:
+    slot: 4
+    material: PAPER
+    name: "&b%keybind_name%"
+    lore:
+      - "&8Información actual"
+      - ""
+      - "&7ID: &f%keybind_id%"
+      - "&7Tecla: &f%keybind_key%"
+      - "&7Acciones: &f%keybind_actions_count%"
+
+  action-entry:
+    slots:
+      - "10-16"
+      - "19-25"
+      - "28-34"
+    material: COMMAND_BLOCK
+    name: "&bAcción #%action_number%"
+    lore:
+      - "&7Tipo: &f%action_type%"
+      - "&7Valor:"
+      - "&f%action_value%"
+      - ""
+      - "&eClick izquierdo para editar."
+      - "&cClick derecho para eliminar."
+    actions:
+      - "[keybind_action] manage"
+
+  add-action:
+    slot: 40
+    material: EMERALD
+    name: "&aAñadir acción"
+    lore:
+      - "&7Agrega una nueva acción a esta keybind."
+      - ""
+      - "&eClick para añadir."
+    actions:
+      - "[keybind_action] add"
+
+  back:
+    slot: 49
+    material: ARROW
+    name: "&cVolver"
+    lore:
+      - "&7Regresa al menú de edición."
+    actions:
+      - "[open_menu] keybind-edit"

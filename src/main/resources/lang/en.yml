@@ -1,0 +1,107 @@
+messages:
+  general:
+    reloaded: "TheosferaCore was reloaded successfully."
+    cancelled: "Editing cancelled."
+    no-permission: "Unknown command. Use /help or /ayuda to get server help."
+    unknown-command: "Unknown command."
+    help-hint: "Use /theosfera help to view help."
+    reload-not-implemented: "The reload system is not implemented yet."
+    feature-disabled: "This feature is currently disabled."
+    feature-disabled-extra: "You can use other Theosfera features in the meantime."
+    only-player: "&cThis command can only be used by players."
+
+  validation:
+    positive-id: "The ID must be a number greater than 0."
+    positive-page: "The page must be a number greater than 0."
+    positive-action: "The action number must be greater than 0."
+    positive-position: "The position must be greater than 0."
+    invalid-name: "The name can only contain letters, numbers, hyphens, and underscores."
+    invalid-key: "The key must be A-Z, 0-9, or F1-F12. Example: K, 1, or F5."
+    empty-description: "The description cannot be empty."
+    empty-action-value: "The action value cannot be empty."
+    invalid-action-type: "Invalid type. Use PLAYER_COMMAND, CONSOLE_COMMAND, or MESSAGE."
+
+  keybind:
+    default-description: "No description."
+    not-found: "No keybind exists with ID %id%."
+    no-keybinds: "There are no configured keybinds."
+    duplicate-key: "A keybind is already assigned to the %key% key."
+    added: "Keybind added successfully with ID %id%."
+    removed: "Keybind %id% was removed successfully."
+    description-updated: "Keybind %id% description was updated."
+    name-updated: "Keybind %id%'s name was updated to %name%."
+    key-updated: "Keybind %id%'s key was updated to %key%."
+    page-not-found: "Page %page% does not exist. Last page: %total_pages%."
+
+  action:
+    no-actions: "This keybind has no actions."
+    added: "Action added successfully to keybind %id%."
+    updated: "Action %action% from keybind %id% was updated."
+    removed: "Action %action% was removed from keybind %id%."
+    moved: "Action %action% was moved to position %position% in keybind %id%."
+    not-found: "Action %action% does not exist in keybind %id%."
+    move-failed: "The action could not be moved. Check that the action and position exist."
+
+  title:
+    core: "TheosferaCore"
+    keybinds: "Theosfera Keybinds"
+    variables: "Theosfera Variables"
+
+  subtitle:
+    version: "v0.1.0-SNAPSHOT"
+    general-help: "General help"
+    keybind-help: "Help"
+    keybind-actions: "Actions"
+    variables: "Available variables"
+    keybind-page: "Page %page% of %total_pages%."
+    keybind-actions-id: "Actions for ID %id%"
+
+  usage:
+    keybind-get: "Correct usage: /keybind get <ID> <name|description|key|actions>"
+    keybind-edit: "Correct usage: /keybind edit <ID> <name|description|key> <change>"
+    keybind-add: "Correct usage: /keybind add <name> <key>"
+    keybind-remove: "Correct usage: /keybind remove <ID>"
+    action-list: "Correct usage: /keybind action list <ID>"
+    action-add: "Correct usage: /keybind action add <ID> <type> <value>"
+    action-edit: "Correct usage: /keybind action edit <ID> <action> <type> <value>"
+    action-move: "Correct usage: /keybind action move <ID> <action> <position>"
+    action-remove: "Correct usage: /keybind action remove <ID> <action>"
+
+  field:
+    keybind-get: "The field must be name, description, key, or actions."
+    keybind-edit: "The field must be name, description, or key."
+
+  display:
+    keybind-list-hover: "&6ID: &f%id%\n&6Name: &f%name%\n&6Description: &f%description%\n&6Key: &f%key%\n&6Actions: &f%actions%"
+    keybind-description: "Keybind %id% description: %description%"
+    keybind-name: "Keybind %id% name: %name%"
+    keybind-key: "Keybind %id% key: %key%"
+    variables-player: "Player variables:"
+    variables-keybind: "Keybind variables:"
+    variable-line: "- %variable%"
+    main-help-hint: "Use /theosfera help to view command help."
+    keybind-list-line: "%id%. %name%"
+    action-list-line: "%action%. [%type%] %value%"
+
+  help:
+    root: "/theosfera - Shows core information."
+    help: "/theosfera help - Shows this help."
+    variables: "/theosfera variables - Shows available variables."
+    reload: "/theosfera reload - Reloads TheosferaCore."
+    keybind: "/keybind - Shows keybind system help."
+    keybind-help: "/keybind help - Show this help."
+    keybind-list: "/keybind list <page> - Lists keybinds."
+    keybind-get: "/keybind get <ID> <name|description|key|actions> - Gets information."
+    keybind-edit: "/keybind edit <ID> <name|description|key> <change> - Edits a keybind."
+    keybind-add: "/keybind add <name> <key> - Adds a keybind."
+    keybind-remove: "/keybind remove <ID> - Removes a keybind."
+    keybind-action: "/keybind action - Manages actions."
+    keybind-menu: "/keybind menu &7- Opens the keybind menu."
+    action-list: "/keybind action list <ID> - Lists actions."
+    action-add: "/keybind action add <ID> <type> <value> - Adds an action."
+    action-edit: "/keybind action edit <ID> <action> <type> <value> - Edits an action."
+    action-move: "/keybind action move <ID> <action> <position> - Moves an action."
+    action-remove: "/keybind action remove <ID> <action> - Removes an action."
+
+  menu:
+    not-found: "&cThis menu could not be found."

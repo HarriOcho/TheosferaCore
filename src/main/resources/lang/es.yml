@@ -1,0 +1,107 @@
+messages:
+  general:
+    reloaded: "TheosferaCore fue recargado correctamente."
+    cancelled: "Edición cancelada."
+    no-permission: "Comando desconocido, utiliza /help o /ayuda para obtener ayuda del servidor."
+    unknown-command: "Comando desconocido."
+    help-hint: "Utiliza /theosfera help para ver la ayuda."
+    reload-not-implemented: "El sistema de recarga todavía no está implementado."
+    feature-disabled: "Esta característica está desactivada por el momento."
+    feature-disabled-extra: "Puedes usar otras funciones de Theosfera mientras tanto."
+    only-player: "&cEste comando solo puede ser usado por jugadores."
+
+  validation:
+    positive-id: "El ID debe ser un número mayor que 0."
+    positive-page: "La página debe ser un número mayor que 0."
+    positive-action: "El número de acción debe ser mayor que 0."
+    positive-position: "La posición debe ser mayor que 0."
+    invalid-name: "El nombre solo puede contener letras, números, guiones y guiones bajos."
+    invalid-key: "La tecla debe ser A-Z, 0-9 o F1-F12. Ejemplo: K, 1 o F5."
+    empty-description: "La descripción no puede estar vacía."
+    empty-action-value: "El valor de la acción no puede estar vacío."
+    invalid-action-type: "Tipo inválido. Usa PLAYER_COMMAND, CONSOLE_COMMAND o MESSAGE."
+
+  keybind:
+    default-description: "Sin descripción."
+    not-found: "No existe un keybind con el ID %id%."
+    no-keybinds: "No hay keybinds configurados."
+    duplicate-key: "Ya existe un keybind asignado a la tecla %key%."
+    added: "Keybind agregado correctamente con el ID %id%."
+    removed: "El keybind %id% fue eliminado correctamente."
+    description-updated: "La descripción del keybind %id% fue actualizada."
+    name-updated: "El nombre del keybind %id% fue actualizado a %name%."
+    key-updated: "La tecla del keybind %id% fue actualizada a %key%."
+    page-not-found: "La página %page% no existe. Última página: %total_pages%."
+
+  action:
+    no-actions: "Este keybind no tiene acciones."
+    added: "Acción agregada correctamente al keybind %id%."
+    updated: "La acción %action% del keybind %id% fue actualizada."
+    removed: "La acción %action% fue eliminada del keybind %id%."
+    moved: "La acción %action% fue movida a la posición %position% en el keybind %id%."
+    not-found: "No existe la acción %action% en el keybind %id%."
+    move-failed: "No se pudo mover la acción. Revisa que la acción y la posición existan."
+
+  title:
+    core: "TheosferaCore"
+    keybinds: "Theosfera Keybinds"
+    variables: "Theosfera Variables"
+
+  subtitle:
+    version: "v0.1.0-SNAPSHOT"
+    general-help: "Ayuda general"
+    keybind-help: "Ayuda"
+    keybind-actions: "Acciones"
+    variables: "Variables disponibles"
+    keybind-page: "Página %page% de %total_pages%."
+    keybind-actions-id: "Acciones del ID %id%"
+
+  usage:
+    keybind-get: "Uso correcto: /keybind get <ID> <name|description|key|actions>"
+    keybind-edit: "Uso correcto: /keybind edit <ID> <name|description|key> <cambio>"
+    keybind-add: "Uso correcto: /keybind add <name> <key>"
+    keybind-remove: "Uso correcto: /keybind remove <ID>"
+    action-list: "Uso correcto: /keybind action list <ID>"
+    action-add: "Uso correcto: /keybind action add <ID> <type> <value>"
+    action-edit: "Uso correcto: /keybind action edit <ID> <action> <type> <value>"
+    action-move: "Uso correcto: /keybind action move <ID> <action> <position>"
+    action-remove: "Uso correcto: /keybind action remove <ID> <action>"
+
+  field:
+    keybind-get: "El campo debe ser name, description, key o actions."
+    keybind-edit: "El campo debe ser name, description o key."
+
+  display:
+    keybind-description: "Descripción del keybind %id%: %description%"
+    keybind-list-hover: "&6ID: &f%id%\n&6Nombre: &f%name%\n&6Descripción: &f%description%\n&6Tecla: &f%key%\n&6Acciones: &f%actions%"
+    keybind-name: "Nombre del keybind %id%: %name%"
+    keybind-key: "Tecla del keybind %id%: %key%"
+    variables-player: "Variables del jugador:"
+    variables-keybind: "Variables de keybind:"
+    variable-line: "- %variable%"
+    main-help-hint: "Utiliza /theosfera help para ver la ayuda de comandos."
+    keybind-list-line: "%id%. %name%"
+    action-list-line: "%action%. [%type%] %value%"
+
+  help:
+    root: "/theosfera - Muestra información del núcleo."
+    help: "/theosfera help - Muestra esta ayuda."
+    variables: "/theosfera variables - Muestra las variables disponibles."
+    reload: "/theosfera reload - Recarga TheosferaCore."
+    keybind: "/keybind - Muestra la ayuda del sistema de keybinds."
+    keybind-help: "/keybind help - Muestra esta ayuda."
+    keybind-list: "/keybind list <page> - Lista los keybinds."
+    keybind-get: "/keybind get <ID> <name|description|key|actions> - Obtiene información."
+    keybind-edit: "/keybind edit <ID> <name|description|key> <cambio> - Edita un keybind."
+    keybind-add: "/keybind add <name> <key> - Agrega un keybind."
+    keybind-remove: "/keybind remove <ID> - Elimina un keybind."
+    keybind-action: "/keybind action - Administra las acciones."
+    keybind-menu: "/keybind menu &7- Abre el menú de keybinds."
+    action-list: "/keybind action list <ID> - Lista las acciones."
+    action-add: "/keybind action add <ID> <type> <value> - Agrega una acción."
+    action-edit: "/keybind action edit <ID> <action> <type> <value> - Edita una acción."
+    action-move: "/keybind action move <ID> <action> <position> - Mueve una acción."
+    action-remove: "/keybind action remove <ID> <action> - Elimina una acción."
+
+  menu:
+    not-found: "&cNo se pudo encontrar este menú."

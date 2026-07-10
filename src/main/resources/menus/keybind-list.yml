@@ -1,0 +1,64 @@
+id: keybind-list
+title: "&b&lTheosfera &8| &fKeybinds"
+size: 54
+
+items:
+  border:
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    name: " "
+    slots:
+      - "0-8"
+      - "45-53"
+      - 9
+      - 17
+      - 18
+      - 26
+      - 27
+      - 35
+      - 36
+      - 44
+
+  previous-page:
+    material: ARROW
+    name: "&bPágina anterior"
+    slot: 45
+    lore:
+      - "&7Regresa a la página anterior."
+    actions:
+      - "[previous_page]"
+
+  close:
+    material: BARRIER
+    name: "&cCerrar"
+    slot: 49
+    lore:
+      - "&7Cierra este menú."
+    actions:
+      - "[close]"
+
+  next-page:
+    material: ARROW
+    name: "&bPágina siguiente"
+    slot: 53
+    lore:
+      - "&7Avanza a la siguiente página."
+    actions:
+      - "[next_page]"
+
+  keybind-entry:
+    material: PAPER
+    name: "&b%keybind_name%"
+    slots:
+      - "10-16"
+      - "19-25"
+      - "28-34"
+      - "37-43"
+    lore:
+      - "&7ID: &f%keybind_id%"
+      - "&7Tecla: &f%keybind_key%"
+      - "&7Descripción:"
+      - "&f%keybind_description%"
+      - ""
+      - "&eClic para ver detalles."
+    actions:
+      - "[keybind_details]"
