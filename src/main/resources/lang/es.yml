@@ -10,6 +10,19 @@ messages:
     feature-disabled-extra: "Puedes usar otras funciones de Theosfera mientras tanto."
     only-player: "&cEste comando solo puede ser usado por jugadores."
 
+  network:
+    transfer-usage: "Uso correcto: /theosfera transfer <lobby|skyblock>"
+    invalid-target: "El destino debe ser lobby o skyblock."
+    unavailable: "La integración con TheosferaProxy no está disponible."
+    already-pending: "Ya tienes una transferencia pendiente."
+    transport-unavailable: "No se pudo enviar la solicitud al Proxy."
+    service-closed: "El servicio de transferencias se está cerrando."
+    transfer-submitted: "Transferencia solicitada hacia %target%. ID: %request_id%."
+    transfer-success: "La transferencia fue completada correctamente."
+    transfer-rejected: "El Proxy rechazó la transferencia."
+    transfer-failed: "La transferencia no pudo completarse."
+    transfer-timed-out: "La transferencia excedió el tiempo de espera."
+
   validation:
     positive-id: "El ID debe ser un número mayor que 0."
     positive-page: "La página debe ser un número mayor que 0."
@@ -87,6 +100,7 @@ messages:
     root: "/theosfera - Muestra información del núcleo."
     help: "/theosfera help - Muestra esta ayuda."
     variables: "/theosfera variables - Muestra las variables disponibles."
+    transfer: "/theosfera transfer <lobby|skyblock> - Transfiere al jugador mediante el Proxy."
     reload: "/theosfera reload - Recarga TheosferaCore."
     keybind: "/keybind - Muestra la ayuda del sistema de keybinds."
     keybind-help: "/keybind help - Muestra esta ayuda."

@@ -3,6 +3,7 @@ package com.theosfera.core;
 import com.theosfera.core.command.KeyCommand;
 import com.theosfera.core.command.KeybindCommand;
 import com.theosfera.core.command.KeybindTabCompleter;
+import com.theosfera.core.command.NetworkTransferCommandHandler;
 import com.theosfera.core.command.TheosferaCommand;
 import com.theosfera.core.command.TheosferaTabCompleter;
 import com.theosfera.core.keybind.KeybindActionExecutor;
@@ -163,6 +164,16 @@ public final class TheosferaCore extends JavaPlugin {
         }
     }
 
+    private void reloadNetworkModule() {
+        if (networkModule != null) {
+            networkModule.close();
+            networkModule = null;
+        }
+
+        reloadConfig();
+        initializeNetworkModule();
+    }
+
     private void registerTheosferaCommand() {
         PluginCommand theosferaCommand =
                 getCommand("theosfera");
@@ -175,12 +186,21 @@ public final class TheosferaCore extends JavaPlugin {
             return;
         }
 
+        NetworkTransferCommandHandler
+                networkTransferHandler =
+                new NetworkTransferCommandHandler(
+                        messageService,
+                        this::getNetworkModule
+                );
+
         theosferaCommand.setExecutor(
                 new TheosferaCommand(
                         messageService,
                         keybindManager,
                         variableService,
-                        menuManager
+                        menuManager,
+                        networkTransferHandler,
+                        this::reloadNetworkModule
                 )
         );
 
