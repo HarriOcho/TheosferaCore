@@ -1,0 +1,13 @@
+network:
+  # Habilita la comunicación segura entre TheosferaCore y
+  # TheosferaProxy mediante Plugin Messaging.
+  enabled: false
+
+  # Debe coincidir exactamente con el nombre del servidor
+  # configurado en Velocity y en backends.properties del Proxy.
+  backend-name: "lobby-1"
+
+  # Valores admitidos por este módulo:
+  # LOBBY
+  # SKYBLOCK
+  backend-type: "LOBBY"

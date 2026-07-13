@@ -8,23 +8,58 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
-public final class TheosferaCommand implements CommandExecutor {
+import java.util.Objects;
+
+public final class TheosferaCommand
+        implements CommandExecutor {
 
     private final MessageService messages;
     private final KeybindManager keybindManager;
     private final VariableService variableService;
     private final MenuManager menuManager;
+    private final NetworkTransferCommandHandler
+            networkTransferHandler;
+    private final Runnable networkReloader;
 
     public TheosferaCommand(
             MessageService messages,
             KeybindManager keybindManager,
             VariableService variableService,
-            MenuManager menuManager
+            MenuManager menuManager,
+            NetworkTransferCommandHandler networkTransferHandler,
+            Runnable networkReloader
     ) {
-        this.messages = messages;
-        this.keybindManager = keybindManager;
-        this.variableService = variableService;
-        this.menuManager = menuManager;
+        this.messages = Objects.requireNonNull(
+                messages,
+                "messages cannot be null"
+        );
+
+        this.keybindManager = Objects.requireNonNull(
+                keybindManager,
+                "keybindManager cannot be null"
+        );
+
+        this.variableService = Objects.requireNonNull(
+                variableService,
+                "variableService cannot be null"
+        );
+
+        this.menuManager = Objects.requireNonNull(
+                menuManager,
+                "menuManager cannot be null"
+        );
+
+        this.networkTransferHandler =
+                Objects.requireNonNull(
+                        networkTransferHandler,
+                        "networkTransferHandler cannot be null"
+                );
+
+        this.networkReloader =
+                Objects.requireNonNull(
+                        networkReloader,
+                        "networkReloader cannot be null"
+                );
     }
 
     @Override
@@ -48,89 +83,157 @@ public final class TheosferaCommand implements CommandExecutor {
             case "help" -> sendHelp(sender);
             case "variables" -> sendVariables(sender);
             case "reload" -> handleReload(sender);
+            case "transfer" ->
+                    networkTransferHandler.handle(
+                            sender,
+                            args
+                    );
             default -> sendUnknownCommand(sender);
         }
 
         return true;
     }
 
-    private void sendVariables(CommandSender sender) {
+    private void sendVariables(
+            CommandSender sender
+    ) {
         messages.sendTitle(
                 sender,
-                messages.getMessage(sender, "title.variables"),
-                messages.getMessage(sender, "subtitle.variables")
+                messages.getMessage(
+                        sender,
+                        "title.variables"
+                ),
+                messages.getMessage(
+                        sender,
+                        "subtitle.variables"
+                )
         );
 
-        messages.sendLineKey(sender, "display.variables-player");
+        messages.sendLineKey(
+                sender,
+                "display.variables-player"
+        );
 
-        for (String variable : variableService.getPlayerVariables()) {
+        for (String variable
+                : variableService.getPlayerVariables()) {
             messages.sendLineKey(
                     sender,
                     "display.variable-line",
-                    "%variable%", variable
+                    "%variable%",
+                    variable
             );
         }
 
         messages.sendEmpty(sender);
 
-        messages.sendLineKey(sender, "display.variables-keybind");
+        messages.sendLineKey(
+                sender,
+                "display.variables-keybind"
+        );
 
-        for (String variable : variableService.getKeybindVariables()) {
+        for (String variable
+                : variableService.getKeybindVariables()) {
             messages.sendLineKey(
                     sender,
                     "display.variable-line",
-                    "%variable%", variable
+                    "%variable%",
+                    variable
             );
         }
 
         messages.sendEmpty(sender);
     }
 
-    private void sendMainMessage(CommandSender sender) {
+    private void sendMainMessage(
+            CommandSender sender
+    ) {
         messages.sendTitle(
                 sender,
-                messages.getMessage(sender, "title.core"),
-                messages.getMessage(sender, "subtitle.version")
+                messages.getMessage(
+                        sender,
+                        "title.core"
+                ),
+                messages.getMessage(
+                        sender,
+                        "subtitle.version"
+                )
         );
 
-        messages.sendLineKey(sender, "display.main-help-hint");
+        messages.sendLineKey(
+                sender,
+                "display.main-help-hint"
+        );
+
         messages.sendEmpty(sender);
     }
 
-    private void sendHelp(CommandSender sender) {
+    private void sendHelp(
+            CommandSender sender
+    ) {
         messages.sendTitle(
                 sender,
-                messages.getMessage(sender, "title.core"),
-                messages.getMessage(sender, "subtitle.general-help")
+                messages.getMessage(
+                        sender,
+                        "title.core"
+                ),
+                messages.getMessage(
+                        sender,
+                        "subtitle.general-help"
+                )
         );
 
         messages.sendLineKey(sender, "help.root");
         messages.sendLineKey(sender, "help.help");
         messages.sendLineKey(sender, "help.keybind");
         messages.sendLineKey(sender, "help.variables");
+        messages.sendLineKey(sender, "help.transfer");
         messages.sendLineKey(sender, "help.reload");
 
         messages.sendEmpty(sender);
     }
 
-    private void handleReload(CommandSender sender) {
+    private void handleReload(
+            CommandSender sender
+    ) {
         messages.load();
         keybindManager.load();
         menuManager.reload();
+        networkReloader.run();
 
-        messages.sendSuccessKey(sender, "general.reloaded");
+        messages.sendSuccessKey(
+                sender,
+                "general.reloaded"
+        );
     }
 
-    private void sendUnknownCommand(CommandSender sender) {
-        messages.sendErrorKey(sender, "general.unknown-command");
-        messages.sendLineKey(sender, "general.help-hint");
+    private void sendUnknownCommand(
+            CommandSender sender
+    ) {
+        messages.sendErrorKey(
+                sender,
+                "general.unknown-command"
+        );
+
+        messages.sendLineKey(
+                sender,
+                "general.help-hint"
+        );
     }
 
-    private boolean hasAdminPermission(CommandSender sender) {
-        return sender.hasPermission("theosfera.admin");
+    private boolean hasAdminPermission(
+            CommandSender sender
+    ) {
+        return sender.hasPermission(
+                "theosfera.admin"
+        );
     }
 
-    private void sendNoPermission(CommandSender sender) {
-        messages.sendErrorKey(sender, "general.no-permission");
+    private void sendNoPermission(
+            CommandSender sender
+    ) {
+        messages.sendErrorKey(
+                sender,
+                "general.no-permission"
+        );
     }
 }
