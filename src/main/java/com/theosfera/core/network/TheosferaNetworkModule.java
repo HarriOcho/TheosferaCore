@@ -1,35 +1,51 @@
 package com.theosfera.core.network;
 
+import com.theosfera.core.network.auth.PendingPlayerAuthenticationRegistry;
+import com.theosfera.core.network.auth.PlayerAuthenticationDisconnectListener;
+import com.theosfera.core.network.auth.PlayerAuthenticationPublisher;
+import com.theosfera.core.network.auth.PlayerAuthenticationRequest;
+import com.theosfera.core.network.auth.PlayerAuthenticationRequestStatus;
+import com.theosfera.core.network.auth.PlayerAuthenticationService;
 import com.theosfera.core.network.transfer.PendingPlayerTransferRegistry;
 import com.theosfera.core.network.transfer.PlayerTransferDisconnectListener;
 import com.theosfera.core.network.transfer.PlayerTransferRequest;
 import com.theosfera.core.network.transfer.PlayerTransferRequestStatus;
 import com.theosfera.core.network.transfer.PlayerTransferService;
 import com.theosfera.protocol.codec.ProtocolJsonCodec;
+import com.theosfera.protocol.message.ProtocolEnvelope;
 import com.theosfera.protocol.message.ProtocolMessageType;
 import com.theosfera.protocol.message.payload.BackendHelloAckPayload;
 import com.theosfera.protocol.message.payload.BackendType;
+import com.theosfera.protocol.message.payload.PlayerAuthenticatedAckPayload;
 import com.theosfera.protocol.message.payload.TransferResultPayload;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.ServicePriority;
 
 import java.util.Objects;
 
 public final class TheosferaNetworkModule
-        implements AutoCloseable {
+        implements AutoCloseable,
+        PlayerAuthenticationPublisher {
 
     private final JavaPlugin plugin;
+    private final BackendNetworkConfig config;
     private final BackendHandshakeService handshakeService;
     private final PlayerPresenceService presenceService;
+    private final PlayerAuthenticationService
+            authenticationService;
     private final PlayerTransferService transferService;
     private final BackendConnectionListener connectionListener;
+    private final PlayerAuthenticationDisconnectListener
+            authenticationDisconnectListener;
     private final PlayerTransferDisconnectListener
             transferDisconnectListener;
     private final ProtocolChannelRegistration channelRegistration;
 
     private boolean initialized;
     private boolean closed;
+    private boolean authenticationPublisherRegistered;
 
     public TheosferaNetworkModule(
             JavaPlugin plugin,
@@ -39,7 +55,8 @@ public final class TheosferaNetworkModule
                 plugin,
                 "plugin cannot be null"
         );
-        Objects.requireNonNull(
+
+        this.config = Objects.requireNonNull(
                 config,
                 "config cannot be null"
         );
@@ -76,6 +93,15 @@ public final class TheosferaNetworkModule
                         messageSender
                 );
 
+        authenticationService =
+                new PlayerAuthenticationService(
+                        plugin,
+                        config,
+                        handshakeService,
+                        messageSender,
+                        new PendingPlayerAuthenticationRegistry()
+                );
+
         transferService =
                 new PlayerTransferService(
                         plugin,
@@ -88,6 +114,11 @@ public final class TheosferaNetworkModule
                         plugin,
                         handshakeService,
                         presenceService
+                );
+
+        authenticationDisconnectListener =
+                new PlayerAuthenticationDisconnectListener(
+                        authenticationService
                 );
 
         transferDisconnectListener =
@@ -112,6 +143,12 @@ public final class TheosferaNetworkModule
                 ProtocolMessageType.BACKEND_HELLO_ACK,
                 BackendHelloAckPayload.class,
                 this::handleHandshakeAck
+        );
+
+        dispatcher.register(
+                ProtocolMessageType.PLAYER_AUTHENTICATED_ACK,
+                PlayerAuthenticatedAckPayload.class,
+                authenticationService::handleAcknowledgement
         );
 
         dispatcher.register(
@@ -141,14 +178,38 @@ public final class TheosferaNetworkModule
                         plugin
                 );
 
-        plugin.getServer()
-                .getPluginManager()
-                .registerEvents(
-                        transferDisconnectListener,
-                        plugin
-                );
+        if (config.isAuthenticationBackend()) {
+            plugin.getServer()
+                    .getPluginManager()
+                    .registerEvents(
+                            authenticationDisconnectListener,
+                            plugin
+                    );
+        }
+
+        if (config.isPlayableBackend()) {
+            plugin.getServer()
+                    .getPluginManager()
+                    .registerEvents(
+                            transferDisconnectListener,
+                            plugin
+                    );
+        }
 
         initialized = true;
+
+        if (config.isAuthenticationBackend()) {
+            plugin.getServer()
+                    .getServicesManager()
+                    .register(
+                            PlayerAuthenticationPublisher.class,
+                            this,
+                            plugin,
+                            ServicePriority.Normal
+                    );
+
+            authenticationPublisherRegistered = true;
+        }
 
         plugin.getLogger().info(
                 "Integración Core–Proxy habilitada en "
@@ -156,10 +217,43 @@ public final class TheosferaNetworkModule
                         + "."
         );
 
-        plugin.getServer().getOnlinePlayers()
+        plugin.getServer()
+                .getOnlinePlayers()
                 .stream()
                 .findFirst()
                 .ifPresent(handshakeService::begin);
+    }
+
+    @Override
+    public PlayerAuthenticationRequest publishAuthenticatedPlayer(
+            Player player,
+            long authenticatedAt
+    ) {
+        Objects.requireNonNull(
+                player,
+                "player cannot be null"
+        );
+
+        if (!config.isAuthenticationBackend()) {
+            return PlayerAuthenticationRequest.rejected(
+                    PlayerAuthenticationRequestStatus
+                            .NOT_AUTHENTICATION_BACKEND
+            );
+        }
+
+        if (!initialized
+                || closed
+                || !handshakeService.isAuthorized()) {
+            return PlayerAuthenticationRequest.rejected(
+                    PlayerAuthenticationRequestStatus
+                            .TRANSPORT_UNAVAILABLE
+            );
+        }
+
+        return authenticationService.requestAuthentication(
+                player,
+                authenticatedAt
+        );
     }
 
     public PlayerTransferRequest requestTransfer(
@@ -170,12 +264,14 @@ public final class TheosferaNetworkModule
                 player,
                 "player cannot be null"
         );
+
         Objects.requireNonNull(
                 targetBackendType,
                 "targetBackendType cannot be null"
         );
 
-        if (!initialized
+        if (!config.isPlayableBackend()
+                || !initialized
                 || closed
                 || !handshakeService.isAuthorized()) {
             return PlayerTransferRequest.rejected(
@@ -196,20 +292,30 @@ public final class TheosferaNetworkModule
                 && handshakeService.isAuthorized();
     }
 
+    public boolean isAuthenticationBackend() {
+        return config.isAuthenticationBackend();
+    }
+
+    public int pendingAuthenticationCount() {
+        return authenticationService.pendingCount();
+    }
+
     public int pendingTransferCount() {
         return transferService.pendingCount();
     }
 
     private void handleHandshakeAck(
             Player carrier,
-            com.theosfera.protocol.message.ProtocolEnvelope<
-                    BackendHelloAckPayload
-                    > envelope
+            ProtocolEnvelope<BackendHelloAckPayload> envelope
     ) {
         if (!handshakeService.handleAck(
                 carrier,
                 envelope
         )) {
+            return;
+        }
+
+        if (!config.isPlayableBackend()) {
             return;
         }
 
@@ -227,9 +333,28 @@ public final class TheosferaNetworkModule
 
         closed = true;
 
-        HandlerList.unregisterAll(connectionListener);
-        HandlerList.unregisterAll(transferDisconnectListener);
+        if (authenticationPublisherRegistered) {
+            plugin.getServer()
+                    .getServicesManager()
+                    .unregister(
+                            PlayerAuthenticationPublisher.class,
+                            this
+                    );
 
+            authenticationPublisherRegistered = false;
+        }
+
+        HandlerList.unregisterAll(connectionListener);
+
+        HandlerList.unregisterAll(
+                authenticationDisconnectListener
+        );
+
+        HandlerList.unregisterAll(
+                transferDisconnectListener
+        );
+
+        authenticationService.close();
         transferService.close();
         handshakeService.close();
         channelRegistration.close();
