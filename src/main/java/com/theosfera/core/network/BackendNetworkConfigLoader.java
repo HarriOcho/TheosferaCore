@@ -55,7 +55,7 @@ public final class BackendNetworkConfigLoader {
             );
         } catch (IllegalArgumentException exception) {
             return disableWithAlert(
-                    "network.backend-type debe ser LOBBY o SKYBLOCK."
+                    "network.backend-type debe ser AUTH, LOBBY o SKYBLOCK."
             );
         }
 

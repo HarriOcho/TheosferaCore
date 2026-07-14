@@ -74,6 +74,9 @@ class BackendNetworkConfigLoaderTest {
                 BackendType.LOBBY,
                 result.backendType()
         );
+
+        assertFalse(result.isAuthenticationBackend());
+        assertTrue(result.isPlayableBackend());
     }
 
     @Test
@@ -102,6 +105,9 @@ class BackendNetworkConfigLoaderTest {
                 BackendType.SKYBLOCK,
                 result.backendType()
         );
+
+        assertFalse(result.isAuthenticationBackend());
+        assertTrue(result.isPlayableBackend());
     }
 
     @Test
@@ -128,7 +134,7 @@ class BackendNetworkConfigLoaderTest {
     }
 
     @Test
-    void disablesAuthBackendType() {
+    void loadsAuthConfiguration() {
         when(fileConfiguration.getBoolean(
                 "network.enabled",
                 false
@@ -147,7 +153,16 @@ class BackendNetworkConfigLoaderTest {
         BackendNetworkConfig result =
                 loader.load();
 
-        assertFalse(result.enabled());
+        assertTrue(result.enabled());
+        assertEquals("auth-1", result.backendName());
+
+        assertEquals(
+                BackendType.AUTH,
+                result.backendType()
+        );
+
+        assertTrue(result.isAuthenticationBackend());
+        assertFalse(result.isPlayableBackend());
     }
 
     @Test

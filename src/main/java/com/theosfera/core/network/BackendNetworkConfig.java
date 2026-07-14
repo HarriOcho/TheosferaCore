@@ -26,12 +26,15 @@ public record BackendNetworkConfig(
                     "backendName cannot be blank when networking is enabled"
             );
         }
+    }
 
-        if (enabled && backendType == BackendType.AUTH) {
-            throw new IllegalArgumentException(
-                    "TheosferaCore player transfers cannot run on AUTH"
-            );
-        }
+    public boolean isAuthenticationBackend() {
+        return backendType == BackendType.AUTH;
+    }
+
+    public boolean isPlayableBackend() {
+        return backendType == BackendType.LOBBY
+                || backendType == BackendType.SKYBLOCK;
     }
 
     public static BackendNetworkConfig disabled() {

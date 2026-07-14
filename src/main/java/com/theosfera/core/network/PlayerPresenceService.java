@@ -58,7 +58,8 @@ public final class PlayerPresenceService {
                 "player cannot be null"
         );
 
-        if (!handshakeService.isAuthorized()
+        if (!config.isPlayableBackend()
+                || !handshakeService.isAuthorized()
                 || !player.isOnline()) {
             return false;
         }

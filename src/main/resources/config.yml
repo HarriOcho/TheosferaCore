@@ -8,6 +8,7 @@ network:
   backend-name: "lobby-1"
 
   # Valores admitidos por este módulo:
+  # AUTH
   # LOBBY
   # SKYBLOCK
   backend-type: "LOBBY"

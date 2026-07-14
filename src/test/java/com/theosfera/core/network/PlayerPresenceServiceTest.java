@@ -142,6 +142,33 @@ class PlayerPresenceServiceTest {
     }
 
     @Test
+    void refusesPresenceFromAuthenticationBackend() {
+        when(handshakeService.isAuthorized())
+                .thenReturn(true);
+
+        PlayerPresenceService authenticationPresenceService =
+                new PlayerPresenceService(
+                        new BackendNetworkConfig(
+                                true,
+                                "auth-1",
+                                BackendType.AUTH
+                        ),
+                        handshakeService,
+                        messageSender
+                );
+
+        assertFalse(
+                authenticationPresenceService
+                        .announceReady(player)
+        );
+
+        verify(
+                messageSender,
+                never()
+        ).send(any(), any());
+    }
+
+    @Test
     void reportsTransportFailure() {
         when(handshakeService.isAuthorized())
                 .thenReturn(true);
