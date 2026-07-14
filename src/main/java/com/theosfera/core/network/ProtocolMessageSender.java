@@ -46,6 +46,12 @@ public final class ProtocolMessageSender {
             return false;
         }
 
+        if (!player.getListeningPluginChannels().contains(
+                ProtocolChannel.NAME
+        )) {
+            return false;
+        }
+
         final byte[] encoded;
 
         try {
