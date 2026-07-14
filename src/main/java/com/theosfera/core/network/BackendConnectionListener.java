@@ -6,6 +6,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -38,11 +39,23 @@ public final class BackendConnectionListener
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        scheduleReadyPlayer(
+                event.getPlayer()
+        );
+    }
 
-        plugin.getServer().getScheduler().runTask(
-                plugin,
-                () -> handleReadyPlayer(player)
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerRegisterChannel(
+            PlayerRegisterChannelEvent event
+    ) {
+        if (!ProtocolChannel.NAME.equals(
+                event.getChannel()
+        )) {
+            return;
+        }
+
+        scheduleReadyPlayer(
+                event.getPlayer()
         );
     }
 
@@ -50,6 +63,13 @@ public final class BackendConnectionListener
     public void onPlayerQuit(PlayerQuitEvent event) {
         handshakeService.handleCarrierDisconnect(
                 event.getPlayer().getUniqueId()
+        );
+    }
+
+    private void scheduleReadyPlayer(Player player) {
+        plugin.getServer().getScheduler().runTask(
+                plugin,
+                () -> handleReadyPlayer(player)
         );
     }
 
