@@ -1,6 +1,8 @@
 package com.theosfera.core.network;
 
 import com.theosfera.core.network.auth.PlayerAuthenticationPublisher;
+import com.theosfera.core.network.transfer.PlayerTransferDisconnectListener;
+import com.theosfera.core.network.transfer.PlayerTransferPublisher;
 import com.theosfera.protocol.message.payload.BackendType;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
@@ -16,6 +18,7 @@ import java.util.logging.Logger;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.same;
@@ -70,8 +73,20 @@ class TheosferaNetworkModuleTest {
 
         module.initialize();
 
+        verify(pluginManager).registerEvents(
+                isA(PlayerTransferDisconnectListener.class),
+                same(plugin)
+        );
+
         verify(servicesManager).register(
                 eq(PlayerAuthenticationPublisher.class),
+                same(module),
+                eq(plugin),
+                eq(ServicePriority.Normal)
+        );
+
+        verify(servicesManager).register(
+                eq(PlayerTransferPublisher.class),
                 same(module),
                 eq(plugin),
                 eq(ServicePriority.Normal)
@@ -81,6 +96,11 @@ class TheosferaNetworkModuleTest {
 
         verify(servicesManager).unregister(
                 eq(PlayerAuthenticationPublisher.class),
+                same(module)
+        );
+
+        verify(servicesManager).unregister(
+                eq(PlayerTransferPublisher.class),
                 same(module)
         );
     }
@@ -99,6 +119,13 @@ class TheosferaNetworkModuleTest {
 
         module.initialize();
 
+        verify(servicesManager).register(
+                eq(PlayerTransferPublisher.class),
+                same(module),
+                eq(plugin),
+                eq(ServicePriority.Normal)
+        );
+
         verify(
                 servicesManager,
                 never()
@@ -110,6 +137,11 @@ class TheosferaNetworkModuleTest {
         );
 
         module.close();
+
+        verify(servicesManager).unregister(
+                eq(PlayerTransferPublisher.class),
+                same(module)
+        );
 
         verify(
                 servicesManager,

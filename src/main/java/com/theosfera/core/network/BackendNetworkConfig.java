@@ -32,6 +32,20 @@ public record BackendNetworkConfig(
         return backendType == BackendType.AUTH;
     }
 
+    public boolean allowsTransferTo(
+            BackendType targetBackendType
+    ) {
+        Objects.requireNonNull(
+                targetBackendType,
+                "targetBackendType cannot be null"
+        );
+
+        return targetBackendType != BackendType.AUTH
+                && (isPlayableBackend()
+                || isAuthenticationBackend()
+                && targetBackendType == BackendType.LOBBY);
+    }
+
     public boolean isPlayableBackend() {
         return backendType == BackendType.LOBBY
                 || backendType == BackendType.SKYBLOCK;

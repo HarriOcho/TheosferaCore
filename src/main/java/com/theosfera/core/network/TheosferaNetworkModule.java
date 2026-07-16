@@ -8,6 +8,7 @@ import com.theosfera.core.network.auth.PlayerAuthenticationRequestStatus;
 import com.theosfera.core.network.auth.PlayerAuthenticationService;
 import com.theosfera.core.network.transfer.PendingPlayerTransferRegistry;
 import com.theosfera.core.network.transfer.PlayerTransferDisconnectListener;
+import com.theosfera.core.network.transfer.PlayerTransferPublisher;
 import com.theosfera.core.network.transfer.PlayerTransferRequest;
 import com.theosfera.core.network.transfer.PlayerTransferRequestStatus;
 import com.theosfera.core.network.transfer.PlayerTransferService;
@@ -27,7 +28,8 @@ import java.util.Objects;
 
 public final class TheosferaNetworkModule
         implements AutoCloseable,
-        PlayerAuthenticationPublisher {
+        PlayerAuthenticationPublisher,
+        PlayerTransferPublisher {
 
     private final JavaPlugin plugin;
     private final BackendNetworkConfig config;
@@ -46,6 +48,7 @@ public final class TheosferaNetworkModule
     private boolean initialized;
     private boolean closed;
     private boolean authenticationPublisherRegistered;
+    private boolean transferPublisherRegistered;
 
     public TheosferaNetworkModule(
             JavaPlugin plugin,
@@ -187,7 +190,8 @@ public final class TheosferaNetworkModule
                     );
         }
 
-        if (config.isPlayableBackend()) {
+        if (config.isPlayableBackend()
+                || config.isAuthenticationBackend()) {
             plugin.getServer()
                     .getPluginManager()
                     .registerEvents(
@@ -210,6 +214,17 @@ public final class TheosferaNetworkModule
 
             authenticationPublisherRegistered = true;
         }
+
+        plugin.getServer()
+                .getServicesManager()
+                .register(
+                        PlayerTransferPublisher.class,
+                        this,
+                        plugin,
+                        ServicePriority.Normal
+                );
+
+        transferPublisherRegistered = true;
 
         plugin.getLogger().info(
                 "Integración Core–Proxy habilitada en "
@@ -270,7 +285,12 @@ public final class TheosferaNetworkModule
                 "targetBackendType cannot be null"
         );
 
-        if (!config.isPlayableBackend()
+        boolean transferAllowed =
+                config.allowsTransferTo(
+                        targetBackendType
+                );
+
+        if (!transferAllowed
                 || !initialized
                 || closed
                 || !handshakeService.isAuthorized()) {
@@ -342,6 +362,17 @@ public final class TheosferaNetworkModule
                     );
 
             authenticationPublisherRegistered = false;
+        }
+
+        if (transferPublisherRegistered) {
+            plugin.getServer()
+                    .getServicesManager()
+                    .unregister(
+                            PlayerTransferPublisher.class,
+                            this
+                    );
+
+            transferPublisherRegistered = false;
         }
 
         HandlerList.unregisterAll(connectionListener);
