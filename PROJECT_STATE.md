@@ -214,6 +214,92 @@ Este subsistema permite cerrar un inventario, solicitar un valor por
 chat, consumir la siguiente entrada del jugador y continuar el flujo del
 menú.
 
+### `com.theosfera.core.network`
+
+La integración Core-Proxy está implementada sobre Plugin Messaging en el
+canal `theosfera:network`.
+
+Clases confirmadas:
+
+-   `BackendNetworkConfig`
+-   `BackendNetworkConfigLoader`
+-   `ProtocolChannel`
+-   `ProtocolChannelRegistration`
+-   `ProtocolMessageSender`
+-   `ProtocolMessageListener`
+-   `ProtocolMessageDispatcher`
+-   `ProtocolMessageHandler`
+-   `BackendHandshakeService`
+-   `BackendHandshakeStatus`
+-   `BackendConnectionListener`
+-   `PlayerPresenceService`
+-   `TheosferaNetworkModule`
+
+Responsabilidades confirmadas:
+
+-   carga de configuración de red del backend;
+-   registro y cierre del canal de Plugin Messaging;
+-   envío, recepción, decodificación y dispatch de mensajes de
+    protocolo;
+-   handshake inicial mediante `BACKEND_HELLO` y
+    `BACKEND_HELLO_ACK`;
+-   detección de jugadores portadores disponibles;
+-   publicación de `PLAYER_SERVER_READY` desde backends jugables
+    autorizados;
+-   registro de handlers para mensajes entrantes;
+-   cierre controlado de servicios, listeners, publishers y canal.
+
+### `com.theosfera.core.network.auth`
+
+Clases confirmadas:
+
+-   `PendingPlayerAuthentication`
+-   `PendingPlayerAuthenticationRegistry`
+-   `PlayerAuthenticationDisconnectListener`
+-   `PlayerAuthenticationPublisher`
+-   `PlayerAuthenticationRegistrationResult`
+-   `PlayerAuthenticationRequest`
+-   `PlayerAuthenticationRequestStatus`
+-   `PlayerAuthenticationService`
+
+Responsabilidades confirmadas:
+
+-   publicación segura de `PLAYER_AUTHENTICATED`;
+-   espera correlacionada de `PLAYER_AUTHENTICATED_ACK`;
+-   exposición de `PlayerAuthenticationPublisher` mediante
+    `ServicesManager` cuando el backend corresponde a autenticación;
+-   registro de solicitudes pendientes por jugador y por `requestId`;
+-   limpieza por desconexión, timeout y apagado.
+
+`PlayerAuthenticationRequest` puede exponer `optionalCompletion()` para
+esperar el `PLAYER_AUTHENTICATED_ACK` correlacionado.
+
+### `com.theosfera.core.network.transfer`
+
+Clases confirmadas:
+
+-   `PendingPlayerTransfer`
+-   `PendingPlayerTransferRegistry`
+-   `PlayerTransferDisconnectListener`
+-   `PlayerTransferPublisher`
+-   `PlayerTransferRegistrationResult`
+-   `PlayerTransferRequest`
+-   `PlayerTransferRequestStatus`
+-   `PlayerTransferService`
+
+Responsabilidades confirmadas:
+
+-   publicación segura de `TRANSFER_REQUEST`;
+-   exposición de `PlayerTransferPublisher` mediante `ServicesManager`
+    en backends habilitados;
+-   registro de solicitudes pendientes por jugador y por `requestId`;
+-   correlación de `TRANSFER_RESULT` cuando se consume explícitamente;
+-   limpieza por desconexión, timeout y apagado.
+
+`PlayerTransferRequestStatus.SUBMITTED` significa únicamente que
+TheosferaCore entregó la solicitud de transferencia de forma segura
+hacia TheosferaProxy. No significa que el jugador llegó al destino.
+
 ## 5. Comandos
 
 ### `/theosfera`
@@ -1059,6 +1145,39 @@ Pruebas funcionales confirmadas:
 -   las pruebas con y sin PlaceholderAPI terminaron sin errores, stack
     traces ni alertas inesperadas.
 
+### Pruebas automatizadas de red Core-Proxy
+
+La capa de red ya cuenta con tests automatizados enfocados para
+configuración, canal, dispatch, envío/recepción de mensajes, handshake,
+presencia, autenticación y transferencias.
+
+Cobertura confirmada del lifecycle de handshake al quedar vacío un
+backend:
+
+-   último jugador saliendo cuando `Server#getOnlinePlayers()` todavía
+    contiene al jugador saliente;
+-   último jugador saliendo cuando `Server#getOnlinePlayers()` ya no
+    contiene al jugador saliente;
+-   otro jugador restante no invalida el backend;
+-   otro jugador restante conserva `handleCarrierDisconnect(playerId)`;
+-   `AUTHORIZED` pasa a `WAITING_FOR_CARRIER` mediante
+    `handleBackendEmpty()`;
+-   `HELLO_PENDING` cancela timeout, limpia el pending y pasa a
+    `WAITING_FOR_CARRIER`;
+-   `WAITING_FOR_CARRIER` permanece estable;
+-   `REJECTED` permanece rechazado;
+-   `CLOSED` permanece cerrado;
+-   después del reinicio de estado puede comenzar un handshake nuevo;
+-   un ACK tardío del handshake anterior es rechazado y no autoriza el
+    servicio.
+
+Verificaciones automatizadas confirmadas para esta corrección:
+
+-   `.\gradlew test --tests com.theosfera.core.network.BackendConnectionListenerTest`
+-   `.\gradlew test --tests com.theosfera.core.network.BackendHandshakeServiceTest`
+-   `.\gradlew test`
+-   clean build exitoso.
+
 ## 22. Decisiones cerradas y elementos eliminados
 
 -   `/theosfera keybind` fue eliminado.
@@ -1248,24 +1367,140 @@ Pendiente opcional posterior:
 
 -   evaluar PlaceholderAPI en nombres y lore visuales de inventarios.
 
+### Integración Core-Proxy
+
+La integración Core-Proxy está operativa y validada con TheosferaProxy
+como autoridad de red.
+
+Commits relevantes de TheosferaCore:
+
+-   `0241486 feat: add secure core proxy player transfers (#10)`
+-   `7be3365 fix: wait for proxy plugin channel readiness (#11)`
+-   `958071a feat: add core authentication acknowledgement flow (#12)`
+-   `040c7cd feat: expose secure backend transfer publisher (#13)`
+-   `4d93d9d fix: reset backend handshake when empty (#14)`
+
+Semántica confirmada:
+
+-   `PlayerAuthenticationRequest` puede exponer
+    `optionalCompletion()` para esperar el
+    `PLAYER_AUTHENTICATED_ACK` correlacionado;
+-   `PlayerTransferRequestStatus.SUBMITTED` significa que Core entregó
+    de forma segura la solicitud `TRANSFER_REQUEST` hacia Proxy;
+-   `SUBMITTED` no significa que el jugador llegó al destino;
+-   TheosferaAuth no espera localmente `TRANSFER_RESULT` durante el
+    handoff Auth->Lobby;
+-   la autoridad para validar y ejecutar transferencias es
+    TheosferaProxy;
+-   el backend de destino confirma la llegada mediante
+    `PLAYER_SERVER_READY`;
+-   no debe restaurarse en Auth una espera local de `TRANSFER_RESULT`
+    para ese handoff.
+
+Corrección fusionada:
+
+`4d93d9d fix: reset backend handshake when empty (#14)`
+
+Comportamiento confirmado:
+
+-   `BackendConnectionListener` determina si queda algún jugador con
+    UUID distinto del jugador saliente;
+-   la detección funciona tanto si `Server#getOnlinePlayers()` todavía
+    incluye al jugador que sale como si Paper ya lo retiró;
+-   si queda otro jugador, se conserva `handleCarrierDisconnect(playerId)`;
+-   si no queda otro jugador, se llama a `handleBackendEmpty()`.
+
+Transiciones de `BackendHandshakeService.handleBackendEmpty()`:
+
+-   `AUTHORIZED` -> `WAITING_FOR_CARRIER`;
+-   `HELLO_PENDING` -> cancela timeout, limpia pending y pasa a
+    `WAITING_FOR_CARRIER`;
+-   `WAITING_FOR_CARRIER` permanece igual;
+-   `REJECTED` permanece `REJECTED`;
+-   `CLOSED` permanece `CLOSED`.
+
+Consecuencias:
+
+-   un backend que perdió todos sus portadores no reutiliza una
+    autorización local histórica;
+-   el próximo jugador debe provocar un `BACKEND_HELLO` nuevo;
+-   un ACK tardío del handshake anterior no puede autorizar el nuevo
+    ciclo;
+-   `REJECTED` y `CLOSED` se conservan fail-closed.
+
 ## 28. Punto exacto de reanudación
 
-La administración gráfica de keybinds, los prompts multilenguaje y la
-primera integración de PlaceholderAPI están implementados y probados.
+Checkpoint actual:
 
-Estado confirmado:
+-   keybinds, menús, localización y PlaceholderAPI continúan
+    implementados;
+-   la integración Core-Proxy está operativa;
+-   Auth->Lobby está validado;
+-   Lobby->Skyblock está validado;
+-   `/hub` de regreso a un Lobby previamente vacío está validado;
+-   el lifecycle de handshake de backends vacíos está corregido;
+-   no hay polling ni health checking periódico;
+-   el soporte de heartbeat de Core es respuesta al protocolo existente,
+    no un emisor periódico;
+-   no existe Redis y no debe proponerse como solución inmediata;
+-   failover y modo mantenimiento no están implementados.
 
--   gestión gráfica completa de keybinds;
--   gestión gráfica de acciones;
--   prompts en español e inglés;
--   cancelación mediante `cancelar` y `cancel`;
--   persistencia tras reload y reinicio;
--   integración opcional con PlaceholderAPI;
--   placeholders internos y externos combinados;
--   acciones de mensaje, jugador y consola probadas;
--   colores de mensajes corregidos;
--   funcionamiento seguro sin PlaceholderAPI;
--   consola sin errores relacionados.
+No mezclar este checkpoint con sistemas futuros como launchpads,
+portales, perfil, parties, amigos, escuadrones u otros módulos de
+roadmap. Esos sistemas deben tratarse como incrementos separados cuando
+se decidan alcance, límites y orden.
+
+### Validación runtime Core-Proxy
+
+Topología validada:
+
+-   Proxy: `127.0.0.1:25565`;
+-   Lobby-1: `127.0.0.1:25566`;
+-   Skyblock-1: `127.0.0.1:25567`;
+-   Auth-1: `127.0.0.1:25568`;
+-   backends enlazados únicamente a `127.0.0.1`;
+-   TheosferaCore instalado en Auth, Lobby y Skyblock;
+-   TheosferaAuth instalado solamente en Auth;
+-   TheosferaProxy instalado solamente en Velocity.
+
+JAR de TheosferaCore desplegado en los tres backends:
+
+``` text
+SHA256: FCE0AEEE356E8EDD3ABAD2DF448B01C554DE41AC7675204148EF125991E4D405
+```
+
+Circuito validado:
+
+1.  el jugador entra por Velocity;
+2.  Auth inicia un handshake nuevo y queda autorizado;
+3.  la autenticación queda confirmada;
+4.  se ejecuta el handoff Auth->Lobby;
+5.  Lobby inicia `BACKEND_HELLO` y queda autorizado;
+6.  Lobby publica `PLAYER_SERVER_READY`;
+7.  se ejecuta Lobby->Skyblock;
+8.  Lobby queda vacío;
+9.  Skyblock inicia `BACKEND_HELLO` y queda autorizado;
+10. desde Skyblock se ejecuta `/hub`;
+11. el jugador regresa a Lobby;
+12. Lobby inicia un segundo `BACKEND_HELLO`;
+13. Lobby vuelve a registrar `Backend autorizado por TheosferaProxy`;
+14. Proxy confirma nuevamente `PLAYER_SERVER_READY` en Lobby.
+
+Evidencia resumida:
+
+-   primera autorización de `lobby-1` a las `01:17:06`;
+-   salida del último jugador de Lobby a las `01:17:29`;
+-   regreso a Lobby a las `01:17:50`;
+-   segunda autorización de `lobby-1` a las `01:17:52`;
+-   confirmación de jugador listo en Proxy a las `01:17:54`.
+
+La segunda autorización de `lobby-1` demuestra que la autorización local
+histórica fue invalidada al quedar el backend sin portadores y que el
+regreso del jugador provocó un handshake nuevo.
+
+No se observó ni se debe exigir una línea informativa de reserva de
+bootstrap para `/hub`: ese servicio no emite el mismo log informativo.
+La ausencia de esa línea no fue un fallo.
 
 ### Política de permisos revisada
 
@@ -1285,31 +1520,11 @@ etiquetas de los comandos.
 
 ### Siguiente punto recomendado
 
-Definir el roadmap modular del nuevo alcance general de TheosferaCore
-antes de implementar sistemas adicionales.
+Cerrar este checkpoint documental y luego decidir un único incremento
+pequeño.
 
-Áreas propuestas para planificación:
+No presentar como implementados:
 
--   comandos esenciales;
--   keybinds y puente futuro con Theosfera Client;
--   waypoints y proveedores externos como Lunar Client;
--   perfil global del jugador;
--   escuadrones;
--   party y amigos;
--   historial de servidores o partidas recientes;
--   nivel y puntos generales;
--   misiones y logros;
--   API para plugins específicos de modalidades.
-
-Principio arquitectónico:
-
-TheosferaCore contiene identidad y servicios globales. Los plugins de
-cada modalidad contienen mecánicas, misiones, logros, monedas y
-comportamientos específicos.
-
-Nombre de rama sugerido para documentar el roadmap:
-
-`docs/core-modular-roadmap`
-
-No comenzar una implementación grande hasta definir límites, módulos,
-dependencias y orden de desarrollo.
+-   health checking periódico;
+-   failover;
+-   modo mantenimiento.
