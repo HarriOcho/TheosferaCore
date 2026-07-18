@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -195,6 +196,163 @@ class BackendHandshakeServiceTest {
     }
 
     @Test
+    void authorizedReturnsToWaitingForCarrierWhenBackendBecomesEmpty() {
+        beginAndAuthorize();
+
+        service.handleBackendEmpty();
+
+        assertEquals(
+                BackendHandshakeStatus.WAITING_FOR_CARRIER,
+                service.status()
+        );
+
+        assertFalse(service.isAuthorized());
+    }
+
+    @Test
+    void pendingHelloIsCancelledAndClearedWhenBackendBecomesEmpty() {
+        ProtocolEnvelope<?> hello =
+                beginAndCaptureHello();
+
+        service.handleBackendEmpty();
+
+        assertEquals(
+                BackendHandshakeStatus.WAITING_FOR_CARRIER,
+                service.status()
+        );
+
+        assertFalse(service.isAuthorized());
+        verify(timeoutTask).cancel();
+
+        assertFalse(
+                service.handleAck(
+                        carrier,
+                        ackEnvelope(
+                                hello.requestId(),
+                                true
+                        )
+                )
+        );
+
+        assertEquals(
+                BackendHandshakeStatus.WAITING_FOR_CARRIER,
+                service.status()
+        );
+    }
+
+    @Test
+    void waitingForCarrierRemainsStableWhenBackendBecomesEmpty() {
+        service.handleBackendEmpty();
+
+        assertEquals(
+                BackendHandshakeStatus.WAITING_FOR_CARRIER,
+                service.status()
+        );
+
+        assertFalse(service.isAuthorized());
+    }
+
+    @Test
+    void rejectedRemainsRejectedWhenBackendBecomesEmpty() {
+        ProtocolEnvelope<?> hello =
+                beginAndCaptureHello();
+
+        service.handleAck(
+                carrier,
+                ackEnvelope(
+                        hello.requestId(),
+                        false
+                )
+        );
+
+        service.handleBackendEmpty();
+
+        assertEquals(
+                BackendHandshakeStatus.REJECTED,
+                service.status()
+        );
+
+        assertFalse(service.isAuthorized());
+        assertFalse(service.begin(carrier));
+    }
+
+    @Test
+    void closedRemainsClosedWhenBackendBecomesEmpty() {
+        service.close();
+
+        service.handleBackendEmpty();
+
+        assertEquals(
+                BackendHandshakeStatus.CLOSED,
+                service.status()
+        );
+
+        assertFalse(service.isAuthorized());
+        assertFalse(service.begin(carrier));
+    }
+
+    @Test
+    void startsNewHandshakeAfterBackendEmptyStateReset() {
+        ProtocolEnvelope<?> firstHello =
+                beginAndAuthorize();
+
+        service.handleBackendEmpty();
+
+        assertTrue(service.begin(carrier));
+
+        ArgumentCaptor<ProtocolEnvelope<?>> captor =
+                ArgumentCaptor.forClass(
+                        ProtocolEnvelope.class
+                );
+
+        verify(messageSender, times(2)).send(
+                eq(carrier),
+                captor.capture()
+        );
+
+        ProtocolEnvelope<?> secondHello =
+                captor.getAllValues().get(1);
+
+        assertEquals(
+                BackendHandshakeStatus.HELLO_PENDING,
+                service.status()
+        );
+
+        assertFalse(
+                firstHello.requestId().equals(
+                        secondHello.requestId()
+                )
+        );
+    }
+
+    @Test
+    void lateAckFromPreviousHandshakeDoesNotAuthorizeNewHandshake() {
+        ProtocolEnvelope<?> firstHello =
+                beginAndCaptureHello();
+
+        service.handleBackendEmpty();
+
+        assertTrue(service.begin(carrier));
+
+        assertFalse(
+                service.handleAck(
+                        carrier,
+                        ackEnvelope(
+                                firstHello.requestId(),
+                                true
+                        )
+                )
+        );
+
+        assertFalse(service.isAuthorized());
+
+        assertEquals(
+                BackendHandshakeStatus.HELLO_PENDING,
+                service.status()
+        );
+    }
+
+    @Test
     void returnsToWaitingStateAfterTimeout() {
         ArgumentCaptor<Runnable> timeoutCaptor =
                 ArgumentCaptor.forClass(Runnable.class);
@@ -255,6 +413,23 @@ class BackendHandshakeServiceTest {
         );
 
         return envelope;
+    }
+
+    private ProtocolEnvelope<?> beginAndAuthorize() {
+        ProtocolEnvelope<?> hello =
+                beginAndCaptureHello();
+
+        assertTrue(
+                service.handleAck(
+                        carrier,
+                        ackEnvelope(
+                                hello.requestId(),
+                                true
+                        )
+                )
+        );
+
+        return hello;
     }
 
     private ProtocolEnvelope<BackendHelloAckPayload>
