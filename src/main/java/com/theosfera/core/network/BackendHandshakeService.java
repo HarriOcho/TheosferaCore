@@ -200,6 +200,19 @@ public final class BackendHandshakeService
         status = BackendHandshakeStatus.WAITING_FOR_CARRIER;
     }
 
+    public void handleBackendEmpty() {
+        if (status == BackendHandshakeStatus.AUTHORIZED) {
+            status = BackendHandshakeStatus.WAITING_FOR_CARRIER;
+            return;
+        }
+
+        if (status == BackendHandshakeStatus.HELLO_PENDING) {
+            cancelTimeout();
+            clearPending();
+            status = BackendHandshakeStatus.WAITING_FOR_CARRIER;
+        }
+    }
+
     public boolean isAuthorized() {
         return status == BackendHandshakeStatus.AUTHORIZED;
     }

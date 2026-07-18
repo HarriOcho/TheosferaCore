@@ -2,6 +2,7 @@ package com.theosfera.core.network;
 
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -9,7 +10,11 @@ import org.bukkit.scheduler.BukkitTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,6 +26,7 @@ class BackendConnectionListenerTest {
     private BackendHandshakeService handshakeService;
     private PlayerPresenceService presenceService;
     private Player player;
+    private Server server;
     private BackendConnectionListener listener;
 
     @BeforeEach
@@ -32,7 +38,7 @@ class BackendConnectionListenerTest {
                 mock(PlayerPresenceService.class);
         player = mock(Player.class);
 
-        Server server = mock(Server.class);
+        server = mock(Server.class);
         BukkitScheduler scheduler =
                 mock(BukkitScheduler.class);
 
@@ -112,5 +118,102 @@ class BackendConnectionListenerTest {
         verify(presenceService).announceReady(player);
         verify(handshakeService, never())
                 .begin(any());
+    }
+
+    @Test
+    void notifiesBackendEmptyWhenLastQuittingPlayerIsStillOnline() {
+        UUID playerId =
+                UUID.fromString(
+                        "2f3262d1-8497-4078-9c3a-85d8f7c2ab54"
+                );
+        PlayerQuitEvent event =
+                mock(PlayerQuitEvent.class);
+
+        when(event.getPlayer()).thenReturn(player);
+        when(player.getUniqueId()).thenReturn(playerId);
+        doReturn(List.of(player))
+                .when(server)
+                .getOnlinePlayers();
+
+        listener.onPlayerQuit(event);
+
+        verify(handshakeService).handleBackendEmpty();
+        verify(handshakeService, never())
+                .handleCarrierDisconnect(any());
+    }
+
+    @Test
+    void notifiesBackendEmptyWhenLastQuittingPlayerWasAlreadyRemoved() {
+        UUID playerId =
+                UUID.fromString(
+                        "2f3262d1-8497-4078-9c3a-85d8f7c2ab54"
+                );
+        PlayerQuitEvent event =
+                mock(PlayerQuitEvent.class);
+
+        when(event.getPlayer()).thenReturn(player);
+        when(player.getUniqueId()).thenReturn(playerId);
+        doReturn(List.of())
+                .when(server)
+                .getOnlinePlayers();
+
+        listener.onPlayerQuit(event);
+
+        verify(handshakeService).handleBackendEmpty();
+        verify(handshakeService, never())
+                .handleCarrierDisconnect(any());
+    }
+
+    @Test
+    void doesNotNotifyBackendEmptyWhenAnotherPlayerRemains() {
+        UUID leavingPlayerId =
+                UUID.fromString(
+                        "2f3262d1-8497-4078-9c3a-85d8f7c2ab54"
+                );
+        Player remainingPlayer =
+                mock(Player.class);
+        PlayerQuitEvent event =
+                mock(PlayerQuitEvent.class);
+
+        when(event.getPlayer()).thenReturn(player);
+        when(player.getUniqueId()).thenReturn(leavingPlayerId);
+        when(remainingPlayer.getUniqueId())
+                .thenReturn(UUID.randomUUID());
+        doReturn(List.of(player, remainingPlayer))
+                .when(server)
+                .getOnlinePlayers();
+
+        listener.onPlayerQuit(event);
+
+        verify(handshakeService, never())
+                .handleBackendEmpty();
+    }
+
+    @Test
+    void preservesCarrierDisconnectWhenAnotherPlayerRemains() {
+        UUID leavingPlayerId =
+                UUID.fromString(
+                        "2f3262d1-8497-4078-9c3a-85d8f7c2ab54"
+                );
+        Player remainingPlayer =
+                mock(Player.class);
+        PlayerQuitEvent event =
+                mock(PlayerQuitEvent.class);
+
+        when(event.getPlayer()).thenReturn(player);
+        when(player.getUniqueId()).thenReturn(leavingPlayerId);
+        when(remainingPlayer.getUniqueId())
+                .thenReturn(UUID.randomUUID());
+        doReturn(List.of(remainingPlayer))
+                .when(server)
+                .getOnlinePlayers();
+
+        listener.onPlayerQuit(event);
+
+        verify(handshakeService).handleCarrierDisconnect(
+                leavingPlayerId
+        );
+        verify(handshakeService, never())
+                .handleBackendEmpty();
     }
 }

@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public final class BackendConnectionListener
         implements Listener {
@@ -61,8 +62,16 @@ public final class BackendConnectionListener
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID leavingPlayerId =
+                event.getPlayer().getUniqueId();
+
+        if (!hasOtherOnlinePlayer(leavingPlayerId)) {
+            handshakeService.handleBackendEmpty();
+            return;
+        }
+
         handshakeService.handleCarrierDisconnect(
-                event.getPlayer().getUniqueId()
+                leavingPlayerId
         );
     }
 
@@ -84,5 +93,17 @@ public final class BackendConnectionListener
         }
 
         handshakeService.begin(player);
+    }
+
+    private boolean hasOtherOnlinePlayer(UUID leavingPlayerId) {
+        for (Player onlinePlayer
+                : plugin.getServer().getOnlinePlayers()) {
+            if (!onlinePlayer.getUniqueId()
+                    .equals(leavingPlayerId)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
