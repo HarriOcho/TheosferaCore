@@ -18,6 +18,7 @@ import com.theosfera.protocol.message.ProtocolMessageType;
 import com.theosfera.protocol.message.payload.BackendHelloAckPayload;
 import com.theosfera.protocol.message.payload.BackendType;
 import com.theosfera.protocol.message.payload.PlayerAuthenticatedAckPayload;
+import com.theosfera.protocol.message.payload.PingPayload;
 import com.theosfera.protocol.message.payload.TransferResultPayload;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
@@ -89,6 +90,12 @@ public final class TheosferaNetworkModule
                         messageSender
                 );
 
+        BackendHeartbeatService heartbeatService =
+                new BackendHeartbeatService(
+                        handshakeService,
+                        messageSender
+                );
+
         presenceService =
                 new PlayerPresenceService(
                         config,
@@ -146,6 +153,12 @@ public final class TheosferaNetworkModule
                 ProtocolMessageType.BACKEND_HELLO_ACK,
                 BackendHelloAckPayload.class,
                 this::handleHandshakeAck
+        );
+
+        dispatcher.register(
+                ProtocolMessageType.PING,
+                PingPayload.class,
+                heartbeatService::handlePing
         );
 
         dispatcher.register(
